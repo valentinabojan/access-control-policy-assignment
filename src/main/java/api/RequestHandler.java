@@ -1,3 +1,7 @@
+package api;
+
+import server.Server;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -107,7 +111,7 @@ public class RequestHandler implements Runnable {
         if (!Files.isDirectory(path)) {
             return new Response(ResponseType.OK, Files.readAllLines(path).stream().collect(Collectors.joining()));
         } else {
-//            return new Response(ResponseType.OK, FileUtils.listFilesAndDirs(path.toFile(), FileFileFilter.FILE, DirectoryFileFilter.DIRECTORY).stream()
+//            return new api.Response(api.ResponseType.OK, FileUtils.listFilesAndDirs(path.toFile(), FileFileFilter.FILE, DirectoryFileFilter.DIRECTORY).stream()
 //                    .map(o -> o.getName()).collect(Collectors.joining(", ")));
             return new Response(ResponseType.OK, Files.list(path)
                     .map(Path::getFileName)

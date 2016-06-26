@@ -1,3 +1,8 @@
+package server;
+
+import api.FilePermission;
+import api.RequestHandler;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

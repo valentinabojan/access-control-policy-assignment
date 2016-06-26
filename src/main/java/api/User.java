@@ -1,8 +1,7 @@
+package api;
+
 import java.io.Serializable;
 
-/**
- * Created by valen_000 on 6/11/2016.
- */
 public class User implements Serializable {
 
     private String name;
