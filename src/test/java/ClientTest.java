@@ -93,6 +93,14 @@ public class ClientTest {
         // 15
         response = client.readResource("bob", "bob", "/alice/cursuri/a.java");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
+
+        //16
+        response = client.writeResource("bob", "bob", "/alice/cursuri/a.java", "writeTest");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        //17
+        response = client.readResource("bob", "bob", "/alice/cursuri/a.java");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "writeTest"));
     }
 
     private static void deleteNonEmptyDirectory(Path path) {
