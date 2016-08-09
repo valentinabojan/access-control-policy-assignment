@@ -6,9 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Client {
@@ -30,7 +28,7 @@ public class Client {
         try {
             out.writeObject(new Command(CommandType.CREATE_RESOURCE, user, file));
             out.flush();
-            return (Response)in.readObject();
+            return (Response) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -45,7 +43,7 @@ public class Client {
         try {
             out.writeObject(new Command(CommandType.READ_RESOURCE, user, file));
             out.flush();
-            return (Response)in.readObject();
+            return (Response) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -60,7 +58,7 @@ public class Client {
         try {
             out.writeObject(new Command(CommandType.WRITE_RESOURCE, user, file));
             out.flush();
-            return (Response)in.readObject();
+            return (Response) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -82,7 +80,7 @@ public class Client {
         try {
             out.writeObject(new Command(CommandType.CHANGE_RIGHTS, user, file));
             out.flush();
-            return (Response)in.readObject();
+            return (Response) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }

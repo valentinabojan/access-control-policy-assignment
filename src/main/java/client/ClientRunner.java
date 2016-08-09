@@ -17,10 +17,10 @@ public class ClientRunner {
 
         try {
             client.connect(hostName, portNumber);
-        }catch (UnknownHostException e) {
+        } catch (UnknownHostException e) {
             System.err.println("Client doesn't know about host " + hostName);
             System.exit(1);
-        }catch (IOException e) {
+        } catch (IOException e) {
             System.err.println("Client couldn't get I/O for the connection to " + hostName);
             System.exit(1);
         }

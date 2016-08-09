@@ -5,18 +5,30 @@ import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import server.ServerRunner;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 public class ClientTest {
 
     private static Client client;
+    private static Thread serverThread;
 
     @BeforeClass
     public static void setup() {
+        serverThread = new Thread(() -> {
+            try {
+                ServerRunner.main("8005");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        serverThread.start();
+
         try {
             client = new Client();
             client.connect("127.0.0.1", 8005);
@@ -28,6 +40,20 @@ public class ClientTest {
     @AfterClass
     public static void tearDown() throws IOException {
         deleteNonEmptyDirectory(Paths.get("src/main/resources/"));
+    }
+
+    private static void deleteNonEmptyDirectory(Path path) {
+        try {
+            if (Files.isDirectory(path)) {
+                try (Stream<Path> entries = Files.list(path)) {
+                    entries.forEach(ClientTest::deleteNonEmptyDirectory);
+                }
+            }
+
+            Files.delete(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -86,6 +112,14 @@ public class ClientTest {
         response = client.changeRights("alice", "alice", "/alice/cursuri/b.java", "rw");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_EXISTING));
 
+        // 16 - write test
+        response = client.writeResource("bob", "bob", "/alice/cursuri/a.java", "writeTest");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        // 17 - write test
+        response = client.readResource("bob", "bob", "/alice/cursuri/a.java");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "writeTest"));
+
         // 14
         response = client.changeRights("alice", "alice", "/alice/cursuri/a.java", "");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
@@ -93,23 +127,5 @@ public class ClientTest {
         // 15
         response = client.readResource("bob", "bob", "/alice/cursuri/a.java");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
-
-        //16
-        response = client.writeResource("bob", "bob", "/alice/cursuri/a.java", "writeTest");
-        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
-
-        //17
-        response = client.readResource("bob", "bob", "/alice/cursuri/a.java");
-        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "writeTest"));
-    }
-
-    private static void deleteNonEmptyDirectory(Path path) {
-        try {
-            if (Files.isDirectory(path))
-                Files.list(path).forEach(ClientTest::deleteNonEmptyDirectory);
-            Files.delete(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

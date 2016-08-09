@@ -37,9 +37,9 @@ public class ServerRunner {
                 Runnable worker = new RequestHandler(clientSocket);
                 executor.execute(worker);
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("Exception caught on server when trying to listen on port " + portNumber
-                                + " or listening for a connection");
+                    + " or listening for a connection");
         } finally {
             if (executor != null) {
                 executor.shutdown();

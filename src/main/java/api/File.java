@@ -20,15 +20,15 @@ public class File implements Serializable {
         this(name, value, null, type);
     }
 
-    public File(String name){
+    public File(String name) {
         this(name, null, null, null);
     }
 
-    public File(String name, String value){
+    public File(String name, String value) {
         this(name, value, null, null);
     }
 
-    public File(String name, Set<FilePermission> permissions){
+    public File(String name, Set<FilePermission> permissions) {
         this(name, null, permissions, null);
     }
 

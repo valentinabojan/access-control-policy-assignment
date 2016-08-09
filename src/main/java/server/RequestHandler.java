@@ -12,9 +12,9 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static api.FilePermission.READ;
 import static api.FilePermission.WRITE;
@@ -37,7 +37,7 @@ public class RequestHandler implements Runnable {
 
             Command userCommand;
             while ((userCommand = (Command) in.readObject()) != null) {
-                switch (userCommand.getType()){
+                switch (userCommand.getType()) {
                     case CREATE_RESOURCE:
                         out.writeObject(createResource(userCommand));
                         out.flush();
@@ -87,7 +87,7 @@ public class RequestHandler implements Runnable {
         }
 
         String n = userCommand.getFile().getName().substring(0, userCommand.getFile().getName().lastIndexOf("/"));
-        while(!n.isEmpty()) {
+        while (!n.isEmpty()) {
             if (ServerRunner.fileSystem.containsKey(n)) {
                 ServerRunner.fileSystem.put(userCommand.getFile().getName(), ServerRunner.fileSystem.get(n));
                 return new Response(ResponseType.OK);
@@ -119,13 +119,15 @@ public class RequestHandler implements Runnable {
         } else {
 //            return new api.Response(api.ResponseType.OK, FileUtils.listFilesAndDirs(path.toFile(), FileFileFilter.FILE, DirectoryFileFilter.DIRECTORY).stream()
 //                    .map(o -> o.getName()).collect(Collectors.joining(", ")));
-            return new Response(ResponseType.OK, Files.list(path)
-                    .map(Path::getFileName)
-                    .map(o -> {
-                        if (!Files.isDirectory(o))
-                            return o.toString() + " - FILE";
-                        return o.toString() + " - DIRECTORY";
-                    }).collect(Collectors.joining()));
+            try (Stream<Path> entries = Files.list(path)) {
+                return new Response(ResponseType.OK, entries
+                        .map(Path::getFileName)
+                        .map(o -> {
+                            if (!Files.isDirectory(o))
+                                return o.toString() + " - FILE";
+                            return o.toString() + " - DIRECTORY";
+                        }).collect(Collectors.joining()));
+            }
         }
     }
 
@@ -142,7 +144,7 @@ public class RequestHandler implements Runnable {
         if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand, WRITE))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        if (FILE.equals(userCommand.getFile().getType()))
+        if (!Files.isDirectory(path))
             Files.write(path, userCommand.getFile().getValue().getBytes());
 
         return new Response(ResponseType.OK);
