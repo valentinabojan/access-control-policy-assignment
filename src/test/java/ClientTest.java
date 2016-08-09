@@ -31,7 +31,7 @@ public class ClientTest {
     }
 
     @Test
-    public void givenSeveralClientRquests_WhenTheRequestsAreProcessedByTheServerWorkers_ThenTheFileSystemIsUpdatesCorrectly() {
+    public void givenSeveralClientRequests_WhenTheRequestsAreProcessedByTheServerWorkers_ThenTheFileSystemIsUpdatesCorrectly() {
         Response response;
 
         // 1
