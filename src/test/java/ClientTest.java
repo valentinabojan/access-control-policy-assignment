@@ -8,10 +8,9 @@ import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import server.Server;
+import server.ServerRunner;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ClientTest {
@@ -21,6 +20,9 @@ public class ClientTest {
     @BeforeClass
     public static void setup() {
         try {
+//            ServerRunner.main("8005");
+//            ClientRunner.main("127.0.0.1", "8005");
+
             client = new Client();
             client.connect("127.0.0.1", 8005);
         } catch (IOException e) {
@@ -101,7 +103,7 @@ public class ClientTest {
     }
 
     @Test @Ignore
-    public void test2() {
+    public void  test2() {
         Response response = client.createResource("alice", "alice", "/alice/cursuri", 0, null);
 
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
@@ -135,7 +137,7 @@ public class ClientTest {
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, ""));
     }
 
-    @Test
+    @Test @Ignore
     public void test7() {
         Response response = client.changeRights("bob", "bob", "/alice/cursuri", "rw");
 

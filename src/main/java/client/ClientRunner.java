@@ -5,9 +5,9 @@ import java.net.UnknownHostException;
 
 public class ClientRunner {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String... args) throws IOException {
         if (args.length != 2) {
-            System.err.println("Usage: java EchoClient <host name> <port number>");
+            System.err.println("Usage: java ClientRunner <host name> <port number>");
             System.exit(1);
         }
 
@@ -18,10 +18,10 @@ public class ClientRunner {
         try {
             client.connect(hostName, portNumber);
         }catch (UnknownHostException e) {
-            System.err.println("Don't know about host " + hostName);
+            System.err.println("Client doesn't know about host " + hostName);
             System.exit(1);
         }catch (IOException e) {
-            System.err.println("Couldn't get I/O for the connection to " + hostName);
+            System.err.println("Client couldn't get I/O for the connection to " + hostName);
             System.exit(1);
         }
     }
