@@ -2,9 +2,6 @@ package api;
 
 import java.io.Serializable;
 
-/**
- * Created by valen_000 on 6/12/2016.
- */
 public class Response implements Serializable {
     private ResponseType type;
     private Object value;
