@@ -70,7 +70,7 @@ public class RequestHandler implements Runnable {
      * c. Numai utilizatorul care este owner in acel director (de exemplu Bob pt orice din /bob) are voie sa faca asta
      */
     private Response createResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/" + userCommand.getFile().getName());
+        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
 
         if (Files.exists(path))
             return new Response(ResponseType.ALREADY_EXISTING);
@@ -96,7 +96,7 @@ public class RequestHandler implements Runnable {
             n = n.substring(0, n.lastIndexOf("/"));
         }
 
-        ServerRunner.fileSystem.put(userCommand.getFile().getName(), new HashSet<>());
+//        ServerRunner.fileSystem.put(userCommand.getFile().getName(), new HashSet<>());
         return new Response(ResponseType.OK);
     }
 
@@ -106,7 +106,7 @@ public class RequestHandler implements Runnable {
      * c. Daca este director, trebuie sa returneze ce se gaseste in acel director.
      */
     private Response readResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/" + userCommand.getFile().getName());
+        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
@@ -136,7 +136,7 @@ public class RequestHandler implements Runnable {
      * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
      */
     private Response writeResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/" + userCommand.getFile().getName());
+        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
@@ -155,7 +155,7 @@ public class RequestHandler implements Runnable {
      * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
      */
     private Response changeRights(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/" + userCommand.getFile().getName());
+        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
@@ -169,7 +169,8 @@ public class RequestHandler implements Runnable {
     }
 
     private boolean hasRights(Command userCommand, FilePermission permission) {
-        return ServerRunner.fileSystem.get(userCommand.getFile().getName()).contains(permission);
+        return ServerRunner.fileSystem.containsKey(userCommand.getFile().getName())
+                && ServerRunner.fileSystem.get(userCommand.getFile().getName()).contains(permission);
     }
 
     private boolean isOwnerOnTheRootDirectory(Command userCommand) {

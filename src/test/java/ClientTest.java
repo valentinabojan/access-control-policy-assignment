@@ -39,7 +39,7 @@ public class ClientTest {
 
     @AfterClass
     public static void tearDown() throws IOException {
-        deleteNonEmptyDirectory(Paths.get("src/main/resources/"));
+        deleteNonEmptyDirectory(Paths.get("src/main/resources/workspace"));
     }
 
     private static void deleteNonEmptyDirectory(Path path) {
