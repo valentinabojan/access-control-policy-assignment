@@ -1,9 +1,6 @@
 package server;
 
-import api.Command;
-import api.FilePermission;
-import api.Response;
-import api.ResponseType;
+import api.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -13,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,7 +59,6 @@ public class RequestHandler implements Runnable {
         } catch (Exception ex) {
             System.out.println("Exception in Worker Run. Exception : " + ex);
         }
-
     }
 
     /**
@@ -86,17 +83,6 @@ public class RequestHandler implements Runnable {
             Files.write(path, userCommand.getFile().getValue().getBytes());
         }
 
-        String n = userCommand.getFile().getName().substring(0, userCommand.getFile().getName().lastIndexOf("/"));
-        while (!n.isEmpty()) {
-            if (ServerRunner.fileSystem.containsKey(n)) {
-                ServerRunner.fileSystem.put(userCommand.getFile().getName(), ServerRunner.fileSystem.get(n));
-                return new Response(ResponseType.OK);
-            }
-
-            n = n.substring(0, n.lastIndexOf("/"));
-        }
-
-//        ServerRunner.fileSystem.put(userCommand.getFile().getName(), new HashSet<>());
         return new Response(ResponseType.OK);
     }
 
@@ -111,7 +97,7 @@ public class RequestHandler implements Runnable {
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
 
-        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand, READ))
+        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getFile(), READ))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
         if (!Files.isDirectory(path)) {
@@ -141,7 +127,7 @@ public class RequestHandler implements Runnable {
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
 
-        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand, WRITE))
+        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getFile(), WRITE))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
         if (!Files.isDirectory(path))
@@ -168,9 +154,18 @@ public class RequestHandler implements Runnable {
         return new Response(ResponseType.OK);
     }
 
-    private boolean hasRights(Command userCommand, FilePermission permission) {
-        return ServerRunner.fileSystem.containsKey(userCommand.getFile().getName())
-                && ServerRunner.fileSystem.get(userCommand.getFile().getName()).contains(permission);
+    private boolean hasRights(File file, FilePermission permission) {
+        String fileName = file.getName();
+        while (!fileName.isEmpty()) {
+            Set<FilePermission> rights = ServerRunner.fileSystem.get(fileName);
+            if (rights != null) {
+                return rights.contains(permission);
+            }
+
+            fileName = fileName.substring(0, fileName.lastIndexOf("/"));
+        }
+
+        return false;
     }
 
     private boolean isOwnerOnTheRootDirectory(Command userCommand) {
