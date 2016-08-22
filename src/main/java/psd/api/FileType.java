@@ -1,4 +1,4 @@
-package api;
+package psd.api;
 
 public enum FileType {
     DIRECTORY, FILE;

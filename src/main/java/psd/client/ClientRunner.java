@@ -1,4 +1,4 @@
-package client;
+package psd.client;
 
 import java.io.IOException;
 import java.net.UnknownHostException;

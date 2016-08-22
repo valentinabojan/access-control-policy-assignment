@@ -1,6 +1,6 @@
-package server;
+package psd.server;
 
-import api.FilePermission;
+import psd.api.FilePermission;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -34,7 +34,7 @@ public class ServerRunner {
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                Runnable worker = new RequestHandler(clientSocket);
+                Runnable worker = new RequestHandler(new UserRolesRepository(), clientSocket);
                 executor.execute(worker);
             }
         } catch (IOException e) {
