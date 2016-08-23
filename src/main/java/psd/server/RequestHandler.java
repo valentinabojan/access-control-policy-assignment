@@ -9,7 +9,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -97,6 +97,9 @@ public class RequestHandler implements Runnable {
             Files.createDirectories(path);
 
         if (FILE.equals(userCommand.getFile().getType())) {
+            if (!Files.exists(path.getParent())) {
+                Files.createDirectories(path.getParent());
+            }
             Files.createFile(path);
             Files.write(path, userCommand.getFile().getValue().getBytes());
         }
@@ -172,6 +175,8 @@ public class RequestHandler implements Runnable {
         }
 
         Set<String> existingRoles = ServerRunner.fileSystem.get(userCommand.getFile().getName());
+        if (existingRoles == null)
+            existingRoles = new HashSet<>();
         existingRoles.add(userCommand.getRole().getRoleName());
         ServerRunner.fileSystem.put(userCommand.getFile().getName(), existingRoles);
 
@@ -224,9 +229,9 @@ public class RequestHandler implements Runnable {
             Set<String> roleNames = ServerRunner.fileSystem.get(fileName);
             if (roleNames != null) {
                 boolean hasRights = roleNames.stream()
-                        .map(roleName -> repository.getRole(roleName))
-                        .filter(role -> repository.getRolesForUser(user.getUsername()).contains(role))
-                        .filter(role -> role.getRights().contains(permission.toString()))
+                        .map(repository::getRole)
+                        .filter(role -> role.getUsers().contains(user))
+                        .filter(role -> role.getRights().contains(permission.getPermission()))
                         .findAny().isPresent();
                 if (hasRights)
                     return true;

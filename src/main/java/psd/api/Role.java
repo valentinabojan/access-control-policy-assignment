@@ -65,7 +65,6 @@ public class Role implements Serializable {
 
         if (rights != null ? !rights.equals(role.rights) : role.rights != null) return false;
         if (roleName != null ? !roleName.equals(role.roleName) : role.roleName != null) return false;
-        if (users != null ? !users.equals(role.users) : role.users != null) return false;
 
         return true;
     }
@@ -76,5 +75,9 @@ public class Role implements Serializable {
         result = 31 * result + (rights != null ? rights.hashCode() : 0);
         result = 31 * result + (users != null ? users.hashCode() : 0);
         return result;
+    }
+
+    public void setRights(String rights) {
+        this.rights = rights;
     }
 }

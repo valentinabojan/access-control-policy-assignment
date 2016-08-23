@@ -94,7 +94,9 @@ public class UserRolesRepository {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
         beginTransaction(em);
 
-        Role foundRole = em.merge(role);
+        Role foundRole = em.find(Role.class, role.getRoleName());
+        foundRole.setRights(role.getRights());
+        em.merge(foundRole);
 
         endTransaction(em);
         return foundRole;

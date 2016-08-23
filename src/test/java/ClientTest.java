@@ -136,7 +136,7 @@ public class ClientTest {
 //    }
 
     @Test
-    public void t2() {
+    public void assignment2_testCase() {
         Response response;
 
         // 1
