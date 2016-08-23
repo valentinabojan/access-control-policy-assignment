@@ -147,6 +147,21 @@ public class Client {
         }
 
         return null;
+    }
 
+    public Response addRights(String userName, String userPassword, String resourceName, String roleName) {
+        User user = new User(userName, userPassword);
+        File file = new File(resourceName);
+        Role role = new Role(roleName);
+
+        try {
+            out.writeObject(new Command(ADD_RIGHTS, user, file, role));
+            out.flush();
+            return (Response) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

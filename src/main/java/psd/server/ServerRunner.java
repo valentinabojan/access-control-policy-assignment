@@ -1,7 +1,5 @@
 package psd.server;
 
-import psd.api.FilePermission;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,7 +12,7 @@ import java.util.concurrent.Executors;
 public class ServerRunner {
 
     public static final int NUMBER_OF_THREADS = 5;
-    public static Map<String, Set<FilePermission>> fileSystem = new HashMap<>();
+    public static Map<String, Set<String>> fileSystem = new HashMap<>();
 
     public static void main(String... args) throws IOException {
         System.out.println("Server started...");

@@ -1,5 +1,7 @@
 import org.assertj.core.api.Assertions;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import psd.api.Response;
 import psd.api.ResponseType;
 import psd.api.Role;
@@ -14,7 +16,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.stream.Stream;
 
 public class ClientTest {
@@ -166,6 +167,71 @@ public class ClientTest {
         response = client.assignRole("root", "root", "bob", "role1");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
+        // 5
+        response = client.createResource("alice", "alice", "/alice/cursuri.java", 1, "cursuri");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        // 6
+        response = client.readResource("bob", "bob", "/alice/cursuri.java");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
+
+        // 7
+        response = client.addRights("bob", "bob", "/alice/cursuri.java", "role1");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
+
+        // 8
+        response = client.addRights("alice", "alice", "/alice/cursuri.java", "role1");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        // 9
+        response = client.readResource("bob", "bob", "/alice/cursuri.java");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "cursuri"));
+
+        // 10
+        response = client.writeResource("alice", "alice", "/alice/cursuri.java", "cursuri2");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        // 11
+        response = client.writeResource("bob", "bob", "/alice/cursuri.java", "cursuri3");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
+
+        // 12
+        response = client.changeRights("root", "root", "role1", "w");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        // 13
+        response = client.writeResource("bob", "bob", "/alice/cursuri.java", "cursuri3");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        // 14
+        response = client.readResource("bob", "bob", "/alice/cursuri.java");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
+
+        // 15
+        response = client.createRole("root", "root", "role2");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        // 16
+        response = client.changeRights("root", "root", "role2", "r");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        // 17
+        response = client.assignRole("root", "root", "bob", "role2");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        // 18
+        response = client.addRights("alice", "alice", "/alice/cursuri.java", "role2");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        // 19
+        response = client.readResource("bob", "bob", "/alice/cursuri.java");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "cursuri3"));
+
+        response = client.writeResource("bob", "bob", "/alice/cursuri.java", "cursuri4");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
+        response = client.readResource("bob", "bob", "/alice/cursuri.java");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "cursuri4"));
     }
 
     private void clearDatabase() {

@@ -71,6 +71,16 @@ public class UserRolesRepository {
         return foundRole.getUsers();
     }
 
+    public Role getRole(String roleName) {
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+        beginTransaction(em);
+
+        Role foundRole = em.find(Role.class, roleName);
+
+        endTransaction(em);
+        return foundRole;
+    }
+
     private void endTransaction(EntityManager em) {
         em.getTransaction().commit();
         em.close();

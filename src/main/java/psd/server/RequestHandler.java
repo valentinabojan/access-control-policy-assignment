@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -47,6 +48,10 @@ public class RequestHandler implements Runnable {
                         break;
                     case WRITE_RESOURCE:
                         out.writeObject(writeResource(userCommand));
+                        out.flush();
+                        break;
+                    case ADD_RIGHTS:
+                        out.writeObject(addRights(userCommand));
                         out.flush();
                         break;
                     case CREATE_ROLE:
@@ -110,7 +115,7 @@ public class RequestHandler implements Runnable {
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
 
-        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getFile(), READ))
+        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getUser(), userCommand.getFile(), READ))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
         if (!Files.isDirectory(path)) {
@@ -140,7 +145,7 @@ public class RequestHandler implements Runnable {
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
 
-        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getFile(), WRITE))
+        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getUser(), userCommand.getFile(), WRITE))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
         if (!Files.isDirectory(path))
@@ -153,19 +158,25 @@ public class RequestHandler implements Runnable {
      * a. Daca nu exista resursa, trebuie sa returneze eroare.
      * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
      */
-//    private Response changeRights(Command userCommand) throws IOException {
-//        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
-//
-//        if (!Files.exists(path))
-//            return new Response(ResponseType.NOT_EXISTING);
-//
-//        if (!isOwnerOnTheRootDirectory(userCommand))
-//            return new Response(ResponseType.NOT_AUTHORIZED);
-//
-//        ServerRunner.fileSystem.put(userCommand.getFile().getName(), userCommand.getFile().getPermission());
-//
-//        return new Response(ResponseType.OK);
-//    }
+    private Response addRights(Command userCommand) throws IOException {
+        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+
+        if (!Files.exists(path))
+            return new Response(ResponseType.NOT_EXISTING);
+
+        if (!isOwnerOnTheRootDirectory(userCommand))
+            return new Response(ResponseType.NOT_AUTHORIZED);
+
+        if (repository.getRole(userCommand.getRole().getRoleName()) == null) {
+            return new Response(ResponseType.NOT_EXISTING);
+        }
+
+        Set<String> existingRoles = ServerRunner.fileSystem.get(userCommand.getFile().getName());
+        existingRoles.add(userCommand.getRole().getRoleName());
+        ServerRunner.fileSystem.put(userCommand.getFile().getName(), existingRoles);
+
+        return new Response(ResponseType.OK);
+    }
 
     private Response createRole(Command userCommand) {
         if (!isRoot(userCommand.getUser()))
@@ -207,12 +218,18 @@ public class RequestHandler implements Runnable {
         return user.equals(new User("root", "root"));
     }
 
-    private boolean hasRights(File file, FilePermission permission) {
+    private boolean hasRights(User user, File file, FilePermission permission) {
         String fileName = file.getName();
         while (!fileName.isEmpty()) {
-            Set<FilePermission> rights = ServerRunner.fileSystem.get(fileName);
-            if (rights != null) {
-                return rights.contains(permission);
+            Set<String> roleNames = ServerRunner.fileSystem.get(fileName);
+            if (roleNames != null) {
+                boolean hasRights = roleNames.stream()
+                        .map(roleName -> repository.getRole(roleName))
+                        .filter(role -> repository.getRolesForUser(user.getUsername()).contains(role))
+                        .filter(role -> role.getRights().contains(permission.toString()))
+                        .findAny().isPresent();
+                if (hasRights)
+                    return true;
             }
 
             fileName = fileName.substring(0, fileName.lastIndexOf("/"));

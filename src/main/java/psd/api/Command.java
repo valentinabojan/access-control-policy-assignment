@@ -30,6 +30,13 @@ public class Command implements Serializable {
         this.newUser = newUser;
     }
 
+    public Command(CommandType type, User user, File file, Role role) {
+        this.type = type;
+        this.user = user;
+        this.file = file;
+        this.role = role;
+    }
+
     public Command(CommandType type, User user, String targetUserName, String targetRoleName) {
         this.type = type;
         this.user = user;
