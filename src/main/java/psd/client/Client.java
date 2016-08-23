@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.HashSet;
-import java.util.Set;
 
 import static psd.api.CommandType.*;
 
@@ -67,28 +65,6 @@ public class Client {
 
         return null;
     }
-
-//    public Response changeRights(String userName, String userPassword, String resourceName, String resourcePermissions) {
-//        User user = new User(userName, userPassword);
-//
-//        Set<FilePermission> filePermissions = new HashSet<>();
-//        if (resourcePermissions.contains("r"))
-//            filePermissions.add(FilePermission.READ);
-//        if (resourcePermissions.contains("w"))
-//            filePermissions.add(FilePermission.WRITE);
-//
-//        File file = new File(resourceName, filePermissions);
-//
-//        try {
-//            out.writeObject(new Command(CHANGE_RIGHTS, user, file));
-//            out.flush();
-//            return (Response) in.readObject();
-//        } catch (IOException | ClassNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return null;
-//    }
 
     public Response createRole(String userName, String userPassword, String roleName) {
         User user = new User(userName, userPassword);

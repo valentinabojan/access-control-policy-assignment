@@ -4,12 +4,8 @@ import psd.api.Role;
 import psd.api.User;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import java.util.List;
 
 public class UserRolesRepository {
-
-    private EntityManagerFactory entityManager;
 
     public User createUser(User user) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
@@ -49,26 +45,6 @@ public class UserRolesRepository {
 
         endTransaction(em);
         return persistedUser;
-    }
-
-    public List<Role> getRolesForUser(String username) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        User foundUser = em.find(User.class, username);
-
-        endTransaction(em);
-        return foundUser.getRoles();
-    }
-
-    public List<User> getUsersForRole(String roleName) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        Role foundRole = em.find(Role.class, roleName);
-
-        endTransaction(em);
-        return foundRole.getUsers();
     }
 
     public Role getRole(String roleName) {
