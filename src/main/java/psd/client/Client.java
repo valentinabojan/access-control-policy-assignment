@@ -186,4 +186,20 @@ public class Client {
 
         return null;
     }
+
+    public Response createHierarchy(String userName, String userPassword, String roleName1, String roleName2) {
+        User user = new User(userName, userPassword);
+        Role role1 = new Role(roleName1);
+        Role role2 = new Role(roleName2);
+
+        try {
+            out.writeObject(new Command(CREATE_HIERARCHY, user, role1, role2));
+            out.flush();
+            return (Response) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

@@ -5,7 +5,7 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "user_constraint")
-@IdClass(ConstraintId.class)
+@IdClass(PairKey.class)
 public class Constraint implements Serializable {
 
     @Id @Column(name = "rolename1")

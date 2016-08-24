@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,6 +70,10 @@ public class RequestHandler implements Runnable {
                         break;
                     case CREATE_CONSTRAINT:
                         out.writeObject(createConstraint(userCommand));
+                        out.flush();
+                        break;
+                    case CREATE_HIERARCHY:
+                        out.writeObject(createHierarchy(userCommand));
                         out.flush();
                         break;
                     case ASSIGN_ROLE:
@@ -232,6 +237,15 @@ public class RequestHandler implements Runnable {
         return new Response(ResponseType.OK);
     }
 
+    private Response createHierarchy(Command userCommand) {
+        if (!isRoot(userCommand.getUser()))
+            return new Response(ResponseType.NOT_AUTHORIZED);
+
+        repository.createHierarchy(new RoleHierarchy(userCommand.getRole1().getRoleName(), userCommand.getRole2().getRoleName()));
+
+        return new Response(ResponseType.OK);
+    }
+
     private Response addPermissionToRole(Command userCommand) {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
@@ -257,9 +271,15 @@ public class RequestHandler implements Runnable {
         User user = repository.getUser(userName);
 
         return user.getRoles().stream()
+                .map(role -> )
                 .anyMatch(role ->
                         repository.getConstraint(roleName, role.getRoleName()) != null
-                        || repository.getConstraint(role.getRoleName(), roleName) != null);
+                                || repository.getConstraint(role.getRoleName(), roleName) != null);
+    }
+
+    private List<Role> getAncestorRoles(Role role) {
+        while ()
+
     }
 
     private Response revokeRole(Command userCommand) {

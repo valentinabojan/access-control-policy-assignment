@@ -141,9 +141,19 @@ public class UserRolesRepository {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
         beginTransaction(em);
 
-        Constraint foundConstraint = em.find(Constraint.class, new ConstraintId(roleName1, roleName2));
+        Constraint foundConstraint = em.find(Constraint.class, new PairKey(roleName1, roleName2));
 
         endTransaction(em);
         return foundConstraint;
+    }
+
+    public RoleHierarchy createHierarchy(RoleHierarchy roleHierarchy) {
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+        beginTransaction(em);
+
+        em.persist(roleHierarchy);
+
+        endTransaction(em);
+        return roleHierarchy;
     }
 }
