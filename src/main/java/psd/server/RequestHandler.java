@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -292,15 +291,11 @@ public class RequestHandler implements Runnable {
         while (!fileName.isEmpty()) {
             Set<String> permissionNames = ServerRunner.fileSystem.get(fileName);
             if (permissionNames != null) {
-                Stream<List<Permission>> listStream = user.getRoles().stream()
-                        .map(Role::getPermissions);
-                Stream<Permission> permissionStream = listStream
-                        .flatMap(Collection::stream);
-                Stream<Permission> permissionStream1 = permissionStream
-                        .filter(permission -> permissionNames.contains(permission.getPermissionName()));
-                Stream<Permission> permissionStream2 = permissionStream1
-                        .filter(permission -> permission.getRights().contains(filePermission.getPermission()));
-                boolean hasRights = permissionStream2
+                boolean hasRights = user.getRoles().stream()
+                        .map(Role::getPermissions)
+                        .flatMap(Collection::stream)
+                        .filter(permission -> permissionNames.contains(permission.getPermissionName()))
+                        .filter(permission -> permission.getRights().contains(filePermission.getPermission()))
                         .findAny().isPresent();
                 if (hasRights)
                     return true;
