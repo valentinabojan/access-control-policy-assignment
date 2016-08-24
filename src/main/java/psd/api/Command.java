@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 public class Command implements Serializable {
 
+    private Role role1;
+    private Role role2;
     private CommandType type;
     private User user;
     private File file;
@@ -65,6 +67,13 @@ public class Command implements Serializable {
         this.permission = permission;
     }
 
+    public Command(CommandType type, User user, Role role1, Role role2) {
+        this.type = type;
+        this.user = user;
+        this.role1 = role1;
+        this.role2 = role2;
+    }
+
     public User getUser() {
         return user;
     }
@@ -95,5 +104,13 @@ public class Command implements Serializable {
 
     public Permission getPermission() {
         return permission;
+    }
+
+    public Role getRole1() {
+        return role1;
+    }
+
+    public Role getRole2() {
+        return role2;
     }
 }

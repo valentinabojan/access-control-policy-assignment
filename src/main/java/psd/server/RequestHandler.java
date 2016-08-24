@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static psd.api.FilePermission.READ;
+import static psd.api.FilePermission.WRITE;
 import static psd.api.FileType.DIRECTORY;
 import static psd.api.FileType.FILE;
 
@@ -47,10 +48,10 @@ public class RequestHandler implements Runnable {
                         out.writeObject(readResource(userCommand));
                         out.flush();
                         break;
-//                    case WRITE_RESOURCE:
-//                        out.writeObject(writeResource(userCommand));
-//                        out.flush();
-//                        break;
+                    case WRITE_RESOURCE:
+                        out.writeObject(writeResource(userCommand));
+                        out.flush();
+                        break;
                     case ASSIGN_PERMISSION:
                         out.writeObject(assignPermission(userCommand));
                         out.flush();
@@ -67,12 +68,16 @@ public class RequestHandler implements Runnable {
                         out.writeObject(createPermission(userCommand));
                         out.flush();
                         break;
-//                    case CHANGE_RIGHTS:
-//                        out.writeObject(changeRights(userCommand));
-//                        out.flush();
-//                        break;
+                    case CREATE_CONSTRAINT:
+                        out.writeObject(createConstraint(userCommand));
+                        out.flush();
+                        break;
                     case ASSIGN_ROLE:
                         out.writeObject(assignRole(userCommand));
+                        out.flush();
+                        break;
+                    case REVOKE_ROLE:
+                        out.writeObject(revokeRole(userCommand));
                         out.flush();
                         break;
                     case ADD_PERMISSION_TO_ROLE:
@@ -146,25 +151,25 @@ public class RequestHandler implements Runnable {
             }
         }
     }
-//
-//    /**
-//     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-//     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-//     */
-//    private Response writeResource(Command userCommand) throws IOException {
-//        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
-//
-//        if (!Files.exists(path))
-//            return new Response(ResponseType.NOT_EXISTING);
-//
-//        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getUser(), userCommand.getFile(), WRITE))
-//            return new Response(ResponseType.NOT_AUTHORIZED);
-//
-//        if (!Files.isDirectory(path))
-//            Files.write(path, userCommand.getFile().getValue().getBytes());
-//
-//        return new Response(ResponseType.OK);
-//    }
+
+    /**
+     * a. Daca nu exista resursa, trebuie sa returneze eroare.
+     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
+     */
+    private Response writeResource(Command userCommand) throws IOException {
+        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+
+        if (!Files.exists(path))
+            return new Response(ResponseType.NOT_EXISTING);
+
+        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getUser().getUsername(), userCommand.getFile(), WRITE))
+            return new Response(ResponseType.NOT_AUTHORIZED);
+
+        if (!Files.isDirectory(path))
+            Files.write(path, userCommand.getFile().getValue().getBytes());
+
+        return new Response(ResponseType.OK);
+    }
 
     /**
      * a. Daca nu exista resursa, trebuie sa returneze eroare.
@@ -219,6 +224,15 @@ public class RequestHandler implements Runnable {
         return new Response(ResponseType.OK);
     }
 
+    private Response createConstraint(Command userCommand) {
+        if (!isRoot(userCommand.getUser()))
+            return new Response(ResponseType.NOT_AUTHORIZED);
+
+        repository.createConstraint(new Constraint(userCommand.getRole1().getRoleName(), userCommand.getRole2().getRoleName()));
+
+        return new Response(ResponseType.OK);
+    }
+
     private Response addPermissionToRole(Command userCommand) {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
@@ -232,9 +246,40 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
+        if (exitsConstraint(userCommand.getTargetUserName(), userCommand.getTargetRoleName()))
+            return new Response(ResponseType.FORBIDDEN);
+
         repository.addRoleToUser(userCommand.getTargetUserName(), userCommand.getTargetRoleName());
 
         return new Response(ResponseType.OK);
+    }
+
+    private boolean exitsConstraint(String userName, String roleName) {
+        User user = repository.getUser(userName);
+
+        return user.getRoles().stream()
+                .anyMatch(role ->
+                        repository.getConstraint(roleName, role.getRoleName()) != null
+                        || repository.getConstraint(role.getRoleName(), roleName) != null);
+    }
+
+    private Response revokeRole(Command userCommand) {
+        if (!isRoot(userCommand.getUser()))
+            return new Response(ResponseType.NOT_AUTHORIZED);
+
+        if (!userHasRole(userCommand.getTargetUserName(), userCommand.getTargetRoleName()))
+            return new Response(ResponseType.INVALID);
+
+        repository.deleteRoleForUser(userCommand.getTargetUserName(), userCommand.getTargetRoleName());
+
+        return new Response(ResponseType.OK);
+    }
+
+    private boolean userHasRole(String userName, String roleName) {
+        Role role = repository.getRole(roleName);
+        User user = repository.getUser(userName);
+
+        return user.getRoles().contains(role);
     }
 
     private boolean isRoot(User user) {

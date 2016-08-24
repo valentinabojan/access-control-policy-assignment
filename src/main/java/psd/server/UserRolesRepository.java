@@ -1,8 +1,6 @@
 package psd.server;
 
-import psd.api.Permission;
-import psd.api.Role;
-import psd.api.User;
+import psd.api.*;
 
 import javax.persistence.EntityManager;
 
@@ -97,18 +95,6 @@ public class UserRolesRepository {
         em.getTransaction().begin();
     }
 
-    public Permission updatePermission(Permission permission) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        Permission foundPermission = em.find(Permission.class, permission.getPermissionName());
-        foundPermission.setRights(permission.getRights());
-        em.merge(foundPermission);
-
-        endTransaction(em);
-        return foundPermission;
-    }
-
     public Permission getPermission(String permissionName) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
         beginTransaction(em);
@@ -127,5 +113,37 @@ public class UserRolesRepository {
 
         endTransaction(em);
         return foundUser;
+    }
+
+    public void deleteRoleForUser(String userName, String roleName) {
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+        beginTransaction(em);
+
+        User foundUser = em.find(User.class, userName);
+        Role foundRole = em.find(Role.class,roleName);
+        foundUser.getRoles().remove(foundRole);
+        em.merge(foundUser);
+
+        endTransaction(em);
+    }
+
+    public Constraint createConstraint(Constraint constraint) {
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+        beginTransaction(em);
+
+        em.persist(constraint);
+
+        endTransaction(em);
+        return constraint;
+    }
+
+    public Constraint getConstraint(String roleName1, String roleName2) {
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+        beginTransaction(em);
+
+        Constraint foundConstraint = em.find(Constraint.class, new ConstraintId(roleName1, roleName2));
+
+        endTransaction(em);
+        return foundConstraint;
     }
 }

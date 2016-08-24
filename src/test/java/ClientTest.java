@@ -61,6 +61,7 @@ public class ClientTest {
 
     @Test
     public void assignment3_testCase() {
+        clearDatabase();
         Response response;
 
         // 1
@@ -119,53 +120,25 @@ public class ClientTest {
         response = client.createRole("root", "root", "role2");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
+        // 12
+        response = client.revokeRole("root", "root", "bob", "role2");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.INVALID));
 
+        // 12
+        response = client.assignRole("root", "root", "bob", "role2");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
+        // 14
+        response = client.revokeRole("root", "root", "bob", "role2");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
+        // 15
+        response = client.createConstraint("root", "root", "role1", "role2");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
-
-
-//        // 10
-//        response = client.writeResource("alice", "alice", "/alice/cursuri.java", "cursuri2");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
-//
-//        // 11
-//        response = client.writeResource("bob", "bob", "/alice/cursuri.java", "cursuri3");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
-//
-//        // 12
-//        response = client.changeRights("root", "root", "role1", "w");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
-//
-//        // 13
-//        response = client.writeResource("bob", "bob", "/alice/cursuri.java", "cursuri3");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
-//
-//        // 14
-//        response = client.readResource("bob", "bob", "/alice/cursuri.java");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
-//
-//        // 16
-//        response = client.changeRights("root", "root", "role2", "r");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
-//
-//        // 17
-//        response = client.assignRole("root", "root", "bob", "role2");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
-//
-//        // 18
-//        response = client.assignPermission("alice", "alice", "/alice/cursuri.java", "role2");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
-//
-//        // 19
-//        response = client.readResource("bob", "bob", "/alice/cursuri.java");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "cursuri3"));
-//
-//        response = client.writeResource("bob", "bob", "/alice/cursuri.java", "cursuri4");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
-//
-//        response = client.readResource("bob", "bob", "/alice/cursuri.java");
-//        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "cursuri4"));
+        // 16
+        response = client.assignRole("root", "root", "bob", "role2");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.FORBIDDEN));
     }
 
     private void clearDatabase() {
@@ -174,6 +147,9 @@ public class ClientTest {
 
         TypedQuery<User> userQuery = em.createQuery("SELECT u FROM User u", User.class);
         userQuery.getResultList().stream().forEach(em::remove);
+
+        TypedQuery<Constraint> constraintQuery = em.createQuery("SELECT c FROM Constraint c", Constraint.class);
+        constraintQuery.getResultList().stream().forEach(em::remove);
 
         TypedQuery<Role> roleQuery = em.createQuery("SELECT r FROM Role r", Role.class);
         roleQuery.getResultList().stream().forEach(em::remove);

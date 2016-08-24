@@ -96,12 +96,11 @@ public class Client {
         return null;
     }
 
-    public Response changeRights(String userName, String userPassword, String roleName, String rights) {
+    public Response assignRole(String userName, String userPassword, String targetUserName, String targetRoleName) {
         User user = new User(userName, userPassword);
-        Role role = new Role(roleName, rights);
 
         try {
-            out.writeObject(new Command(CHANGE_RIGHTS, user, role));
+            out.writeObject(new Command(ASSIGN_ROLE, user, targetUserName, targetRoleName));
             out.flush();
             return (Response) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
@@ -111,11 +110,11 @@ public class Client {
         return null;
     }
 
-    public Response assignRole(String userName, String userPassword, String targetUserName, String targetRoleName) {
+    public Response revokeRole(String userName, String userPassword, String targetUserName, String targetRoleName) {
         User user = new User(userName, userPassword);
 
         try {
-            out.writeObject(new Command(ASSIGN_ROLE, user, targetUserName, targetRoleName));
+            out.writeObject(new Command(REVOKE_ROLE, user, targetUserName, targetRoleName));
             out.flush();
             return (Response) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
@@ -163,6 +162,22 @@ public class Client {
 
         try {
             out.writeObject(new Command(ADD_PERMISSION_TO_ROLE, user, role, permission));
+            out.flush();
+            return (Response) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public Response createConstraint(String userName, String userPassword, String roleName1, String roleName2) {
+        User user = new User(userName, userPassword);
+        Role role1 = new Role(roleName1);
+        Role role2 = new Role(roleName2);
+
+        try {
+            out.writeObject(new Command(CREATE_CONSTRAINT, user, role1, role2));
             out.flush();
             return (Response) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
