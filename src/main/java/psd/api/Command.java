@@ -58,6 +58,13 @@ public class Command implements Serializable {
         this.permission = permission;
     }
 
+    public Command(CommandType type, User user, File file, Permission permission) {
+        this.type = type;
+        this.user = user;
+        this.file = file;
+        this.permission = permission;
+    }
+
     public User getUser() {
         return user;
     }

@@ -9,9 +9,14 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static psd.api.FilePermission.READ;
 import static psd.api.FileType.DIRECTORY;
 import static psd.api.FileType.FILE;
 
@@ -38,10 +43,10 @@ public class RequestHandler implements Runnable {
                         out.writeObject(createResource(userCommand));
                         out.flush();
                         break;
-//                    case READ_RESOURCE:
-//                        out.writeObject(readResource(userCommand));
-//                        out.flush();
-//                        break;
+                    case READ_RESOURCE:
+                        out.writeObject(readResource(userCommand));
+                        out.flush();
+                        break;
 //                    case WRITE_RESOURCE:
 //                        out.writeObject(writeResource(userCommand));
 //                        out.flush();
@@ -111,36 +116,36 @@ public class RequestHandler implements Runnable {
         return new Response(ResponseType.OK);
     }
 
-//    /**
-//     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-//     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-//     * c. Daca este director, trebuie sa returneze ce se gaseste in acel director.
-//     */
-//    private Response readResource(Command userCommand) throws IOException {
-//        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
-//
-//        if (!Files.exists(path))
-//            return new Response(ResponseType.NOT_EXISTING);
-//
-//        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getUser(), userCommand.getFile(), READ))
-//            return new Response(ResponseType.NOT_AUTHORIZED);
-//
-//        if (!Files.isDirectory(path)) {
-//            return new Response(ResponseType.OK, Files.readAllLines(path).stream().collect(Collectors.joining()));
-//        } else {
-////            return new api.Response(api.ResponseType.OK, FileUtils.listFilesAndDirs(path.toFile(), FileFileFilter.FILE, DirectoryFileFilter.DIRECTORY).stream()
-////                    .map(o -> o.getUsername()).collect(Collectors.joining(", ")));
-//            try (Stream<Path> entries = Files.list(path)) {
-//                return new Response(ResponseType.OK, entries
-//                        .map(Path::getFileName)
-//                        .map(o -> {
-//                            if (!Files.isDirectory(o))
-//                                return o.toString() + " - FILE";
-//                            return o.toString() + " - DIRECTORY";
-//                        }).collect(Collectors.joining()));
-//            }
-//        }
-//    }
+    /**
+     * a. Daca nu exista resursa, trebuie sa returneze eroare.
+     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
+     * c. Daca este director, trebuie sa returneze ce se gaseste in acel director.
+     */
+    private Response readResource(Command userCommand) throws IOException {
+        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+
+        if (!Files.exists(path))
+            return new Response(ResponseType.NOT_EXISTING);
+
+        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getUser().getUsername(), userCommand.getFile(), READ))
+            return new Response(ResponseType.NOT_AUTHORIZED);
+
+        if (!Files.isDirectory(path)) {
+            return new Response(ResponseType.OK, Files.readAllLines(path).stream().collect(Collectors.joining()));
+        } else {
+//            return new api.Response(api.ResponseType.OK, FileUtils.listFilesAndDirs(path.toFile(), FileFileFilter.FILE, DirectoryFileFilter.DIRECTORY).stream()
+//                    .map(o -> o.getUsername()).collect(Collectors.joining(", ")));
+            try (Stream<Path> entries = Files.list(path)) {
+                return new Response(ResponseType.OK, entries
+                        .map(Path::getFileName)
+                        .map(o -> {
+                            if (!Files.isDirectory(o))
+                                return o.toString() + " - FILE";
+                            return o.toString() + " - DIRECTORY";
+                        }).collect(Collectors.joining()));
+            }
+        }
+    }
 //
 //    /**
 //     * a. Daca nu exista resursa, trebuie sa returneze eroare.
@@ -236,25 +241,31 @@ public class RequestHandler implements Runnable {
         return user.equals(new User("root", "root"));
     }
 
-//    private boolean hasRights(User user, File file, FilePermission permission) {
-//        String fileName = file.getName();
-//        while (!fileName.isEmpty()) {
-//            Set<String> roleNames = ServerRunner.fileSystem.get(fileName);
-//            if (roleNames != null) {
-//                boolean hasRights = roleNames.stream()
-//                        .map(repository::getRole)
-//                        .filter(role -> role.getUsers().contains(user))
-//                        .filter(role -> role.getRights().contains(permission.getPermission()))
-//                        .findAny().isPresent();
-//                if (hasRights)
-//                    return true;
-//            }
-//
-//            fileName = fileName.substring(0, fileName.lastIndexOf("/"));
-//        }
-//
-//        return false;
-//    }
+    private boolean hasRights(String userName, File file, FilePermission filePermission) {
+        String fileName = file.getName();
+        User user = repository.getUser(userName);
+        while (!fileName.isEmpty()) {
+            Set<String> permissionNames = ServerRunner.fileSystem.get(fileName);
+            if (permissionNames != null) {
+                Stream<List<Permission>> listStream = user.getRoles().stream()
+                        .map(Role::getPermissions);
+                Stream<Permission> permissionStream = listStream
+                        .flatMap(Collection::stream);
+                Stream<Permission> permissionStream1 = permissionStream
+                        .filter(permission -> permissionNames.contains(permission.getPermissionName()));
+                Stream<Permission> permissionStream2 = permissionStream1
+                        .filter(permission -> permission.getRights().contains(filePermission.getPermission()));
+                boolean hasRights = permissionStream2
+                        .findAny().isPresent();
+                if (hasRights)
+                    return true;
+            }
+
+            fileName = fileName.substring(0, fileName.lastIndexOf("/"));
+        }
+
+        return false;
+    }
 
     private boolean isOwnerOnTheRootDirectory(Command userCommand) {
         return userCommand.getFile().getName().toLowerCase().matches("^/" + userCommand.getUser().getUsername().toLowerCase() + "/.*$");

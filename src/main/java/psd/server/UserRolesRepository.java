@@ -118,4 +118,14 @@ public class UserRolesRepository {
         endTransaction(em);
         return foundPermission;
     }
+
+    public User getUser(String userName) {
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+        beginTransaction(em);
+
+        User foundUser = em.find(User.class, userName);
+
+        endTransaction(em);
+        return foundUser;
+    }
 }

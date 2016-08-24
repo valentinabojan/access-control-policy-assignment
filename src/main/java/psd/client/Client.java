@@ -125,13 +125,13 @@ public class Client {
         return null;
     }
 
-    public Response assignPermission(String userName, String userPassword, String resourceName, String roleName) {
+    public Response assignPermission(String userName, String userPassword, String resourceName, String permissionName) {
         User user = new User(userName, userPassword);
         File file = new File(resourceName);
-        Role role = new Role(roleName);
+        Permission permission = new Permission(permissionName);
 
         try {
-            out.writeObject(new Command(ASSIGN_PERMISSION, user, file, role));
+            out.writeObject(new Command(ASSIGN_PERMISSION, user, file, permission));
             out.flush();
             return (Response) in.readObject();
         } catch (IOException | ClassNotFoundException e) {

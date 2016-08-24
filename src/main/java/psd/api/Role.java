@@ -22,7 +22,7 @@ public class Role implements Serializable {
 
     @ManyToMany(fetch=FetchType.EAGER)
     @JoinTable(
-            name="role_permission",
+            name="role_permissions",
             joinColumns=@JoinColumn(name="role_name", referencedColumnName="role_name"),
             inverseJoinColumns=@JoinColumn(name="permission_name", referencedColumnName="permission_name"))
     private List<Permission> permissions;

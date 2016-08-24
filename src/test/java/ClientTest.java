@@ -2,10 +2,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import psd.api.Response;
-import psd.api.ResponseType;
-import psd.api.Role;
-import psd.api.User;
+import psd.api.*;
 import psd.client.Client;
 import psd.server.PersistenceManager;
 import psd.server.ServerRunner;
@@ -96,16 +93,16 @@ public class ClientTest {
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
         // 6
-        response = client.assignPermission("bob", "bob", "/alice/cursuri.java", "role1");
+        response = client.assignPermission("bob", "bob", "/alice/cursuri.java", "perm1");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
 
         // 7
-        response = client.assignPermission("alice", "alice", "/alice/cursuri.java", "role1");
+        response = client.assignPermission("alice", "alice", "/alice/cursuri.java", "perm1");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
         // 8
         response = client.readResource("bob", "bob", "/alice/cursuri.java");
-        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "cursuri"));
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
 
         response = client.addPermissionToRole("bob", "bob", "role1", "perm1");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
@@ -180,6 +177,9 @@ public class ClientTest {
 
         TypedQuery<Role> roleQuery = em.createQuery("SELECT r FROM Role r", Role.class);
         roleQuery.getResultList().stream().forEach(em::remove);
+
+        TypedQuery<Permission> permissionQuery = em.createQuery("SELECT p FROM Permission p", Permission.class);
+        permissionQuery.getResultList().stream().forEach(em::remove);
 
         em.getTransaction().commit();
         em.close();

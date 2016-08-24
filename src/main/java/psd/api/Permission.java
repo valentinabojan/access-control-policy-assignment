@@ -17,7 +17,7 @@ public class Permission implements Serializable {
 
     @ManyToMany(fetch=FetchType.EAGER)
     @JoinTable(
-            name="role_permission",
+            name="role_permissions",
             joinColumns=@JoinColumn(name="permission_name", referencedColumnName="permission_name"),
             inverseJoinColumns=@JoinColumn(name="role_name", referencedColumnName="role_name"))
     private List<Role> roles;
