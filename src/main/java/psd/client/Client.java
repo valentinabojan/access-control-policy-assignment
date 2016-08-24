@@ -125,13 +125,44 @@ public class Client {
         return null;
     }
 
-    public Response addRights(String userName, String userPassword, String resourceName, String roleName) {
+    public Response assignPermission(String userName, String userPassword, String resourceName, String roleName) {
         User user = new User(userName, userPassword);
         File file = new File(resourceName);
         Role role = new Role(roleName);
 
         try {
-            out.writeObject(new Command(ADD_RIGHTS, user, file, role));
+            out.writeObject(new Command(ASSIGN_PERMISSION, user, file, role));
+            out.flush();
+            return (Response) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public Response createPermission(String userName, String userPassword, String permissionName, String rights) {
+        User user = new User(userName, userPassword);
+        Permission permission = new Permission(permissionName, rights);
+
+        try {
+            out.writeObject(new Command(CREATE_PERMISSION, user, permission));
+            out.flush();
+            return (Response) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public Response addPermissionToRole(String userName, String userPassword, String roleName, String permissionName) {
+        User user = new User(userName, userPassword);
+        Role role = new Role(roleName);
+        Permission permission = new Permission(permissionName);
+
+        try {
+            out.writeObject(new Command(ADD_PERMISSION_TO_ROLE, user, role, permission));
             out.flush();
             return (Response) in.readObject();
         } catch (IOException | ClassNotFoundException e) {

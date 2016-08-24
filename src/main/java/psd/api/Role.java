@@ -1,11 +1,6 @@
 package psd.api;
 
-import org.hibernate.annotations.*;
-import org.hibernate.annotations.CascadeType;
-
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +12,6 @@ public class Role implements Serializable {
     @Id
     @Column(name = "role_name")
     private String roleName;
-    private String rights;
 
     @ManyToMany(fetch=FetchType.EAGER)
     @JoinTable(
@@ -26,14 +20,21 @@ public class Role implements Serializable {
             inverseJoinColumns=@JoinColumn(name="username", referencedColumnName="username"))
     private List<User> users;
 
+    @ManyToMany(fetch=FetchType.EAGER)
+    @JoinTable(
+            name="role_permission",
+            joinColumns=@JoinColumn(name="role_name", referencedColumnName="role_name"),
+            inverseJoinColumns=@JoinColumn(name="permission_name", referencedColumnName="permission_name"))
+    private List<Permission> permissions;
+
     public Role() {
         this.users = new ArrayList<>();
+        this.permissions = new ArrayList<>();
     }
 
     public Role(String roleName, String rights) {
         this();
         this.roleName = roleName;
-        this.rights = rights;
     }
 
     public Role(String roleName) {
@@ -44,8 +45,8 @@ public class Role implements Serializable {
         return roleName;
     }
 
-    public String getRights() {
-        return rights;
+    public List<Permission> getPermissions() {
+        return permissions;
     }
 
     public List<User> getUsers() {
@@ -56,6 +57,10 @@ public class Role implements Serializable {
         users.add(user);
     }
 
+    public void addPermission(Permission permission) {
+        this.permissions.add(permission);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -63,7 +68,6 @@ public class Role implements Serializable {
 
         Role role = (Role) o;
 
-        if (rights != null ? !rights.equals(role.rights) : role.rights != null) return false;
         if (roleName != null ? !roleName.equals(role.roleName) : role.roleName != null) return false;
 
         return true;
@@ -72,12 +76,7 @@ public class Role implements Serializable {
     @Override
     public int hashCode() {
         int result = roleName != null ? roleName.hashCode() : 0;
-        result = 31 * result + (rights != null ? rights.hashCode() : 0);
         result = 31 * result + (users != null ? users.hashCode() : 0);
         return result;
-    }
-
-    public void setRights(String rights) {
-        this.rights = rights;
     }
 }

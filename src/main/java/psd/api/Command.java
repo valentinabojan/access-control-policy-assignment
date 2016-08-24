@@ -11,6 +11,7 @@ public class Command implements Serializable {
     private User newUser;
     private String targetUserName;
     private String targetRoleName;
+    private Permission permission;
 
     public Command(CommandType type, User user, File file) {
         this.type = type;
@@ -44,6 +45,19 @@ public class Command implements Serializable {
         this.targetRoleName = targetRoleName;
     }
 
+    public Command(CommandType type, User user, Permission permission) {
+        this.type = type;
+        this.user = user;
+        this.permission = permission;
+    }
+
+    public Command(CommandType type, User user, Role role, Permission permission) {
+        this.type = type;
+        this.user = user;
+        this.role = role;
+        this.permission = permission;
+    }
+
     public User getUser() {
         return user;
     }
@@ -70,5 +84,9 @@ public class Command implements Serializable {
 
     public String getTargetRoleName() {
         return targetRoleName;
+    }
+
+    public Permission getPermission() {
+        return permission;
     }
 }
