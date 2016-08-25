@@ -3,6 +3,10 @@ package psd.server;
 import psd.api.*;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class UserRolesRepository {
 
@@ -155,5 +159,18 @@ public class UserRolesRepository {
 
         endTransaction(em);
         return roleHierarchy;
+    }
+
+    public Set<String> getChildrenRoles(String roleName) {
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+        beginTransaction(em);
+
+        Query query = em.createQuery("SELECT distinct c.child FROM RoleHierarchy rh WHERE rh.parent = :parent");
+        query.setParameter("parent", roleName);
+
+        List<String> result = query.getResultList();
+
+        endTransaction(em);
+        return result.stream().collect(Collectors.toSet());
     }
 }

@@ -1,6 +1,7 @@
 package psd.server;
 
 import psd.api.*;
+import sun.nio.ch.FileKey;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -9,17 +10,17 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static psd.api.FilePermission.READ;
 import static psd.api.FilePermission.WRITE;
 import static psd.api.FileType.DIRECTORY;
 import static psd.api.FileType.FILE;
+import static psd.server.ServerRunner.fileSystem;
 
 public class RequestHandler implements Runnable {
 
@@ -192,11 +193,11 @@ public class RequestHandler implements Runnable {
             return new Response(ResponseType.NOT_EXISTING);
         }
 
-        Set<String> existingPermissions = ServerRunner.fileSystem.get(userCommand.getFile().getName());
+        Set<String> existingPermissions = fileSystem.get(userCommand.getFile().getName());
         if (existingPermissions == null)
             existingPermissions = new HashSet<>();
         existingPermissions.add(userCommand.getPermission().getPermissionName());
-        ServerRunner.fileSystem.put(userCommand.getFile().getName(), existingPermissions);
+        fileSystem.put(userCommand.getFile().getName(), existingPermissions);
 
         return new Response(ResponseType.OK);
     }
@@ -271,15 +272,22 @@ public class RequestHandler implements Runnable {
         User user = repository.getUser(userName);
 
         return user.getRoles().stream()
-                .map(role -> )
+                .map(role -> getAncestorRoles(role.getRoleName()))
+                .flatMap(Collection::stream)
                 .anyMatch(role ->
-                        repository.getConstraint(roleName, role.getRoleName()) != null
-                                || repository.getConstraint(role.getRoleName(), roleName) != null);
+                        repository.getConstraint(roleName, roleName) != null
+                        || repository.getConstraint(roleName, roleName) != null);
     }
 
-    private List<Role> getAncestorRoles(Role role) {
-        while ()
+    private Set<Role> getAncestorRoles(String role) {
+        Set<String> children = repository.getChildrenRoles(role);
 
+        if (children.isEmpty())
+            return emptySet();
+
+        return children.stream()
+                .flatMap(r -> getAncestorRoles(r).stream())
+                .collect(Collectors.toSet());
     }
 
     private Response revokeRole(Command userCommand) {
@@ -309,9 +317,11 @@ public class RequestHandler implements Runnable {
         String fileName = file.getName();
         User user = repository.getUser(userName);
         while (!fileName.isEmpty()) {
-            Set<String> permissionNames = ServerRunner.fileSystem.get(fileName);
+            Set<String> permissionNames = fileSystem.get(fileName);
             if (permissionNames != null) {
                 boolean hasRights = user.getRoles().stream()
+                        .map(role -> getAncestorRoles(role.getRoleName()))
+                        .flatMap(Collection::stream)
                         .map(Role::getPermissions)
                         .flatMap(Collection::stream)
                         .filter(permission -> permissionNames.contains(permission.getPermissionName()))
