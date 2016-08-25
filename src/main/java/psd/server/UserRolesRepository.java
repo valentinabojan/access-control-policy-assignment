@@ -1,6 +1,8 @@
 package psd.server;
 
-import psd.api.*;
+import psd.api.Permission;
+import psd.api.Role;
+import psd.api.User;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -9,36 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class UserRolesRepository {
-
-    public User createUser(User user) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        em.persist(user);
-
-        endTransaction(em);
-        return user;
-    }
-
-    public Role createRole(Role role) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        em.persist(role);
-
-        endTransaction(em);
-        return role;
-    }
-
-    public Permission createPermission(Permission permission) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        em.persist(permission);
-
-        endTransaction(em);
-        return permission;
-    }
 
     public User addRoleToUser(String username, String roleName) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
@@ -80,43 +52,14 @@ public class UserRolesRepository {
         return persistedRole;
     }
 
-    public Role getRole(String roleName) {
+    public <EntityClass, KeyClass> EntityClass getEntity(Class<EntityClass> entityClass, KeyClass key) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
         beginTransaction(em);
 
-        Role foundRole = em.find(Role.class, roleName);
+        EntityClass entity = em.find(entityClass, key);
 
         endTransaction(em);
-        return foundRole;
-    }
-
-    private void endTransaction(EntityManager em) {
-        em.getTransaction().commit();
-        em.close();
-    }
-
-    private void beginTransaction(EntityManager em) {
-        em.getTransaction().begin();
-    }
-
-    public Permission getPermission(String permissionName) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        Permission foundPermission = em.find(Permission.class, permissionName);
-
-        endTransaction(em);
-        return foundPermission;
-    }
-
-    public User getUser(String userName) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        User foundUser = em.find(User.class, userName);
-
-        endTransaction(em);
-        return foundUser;
+        return entity;
     }
 
     public void deleteRoleForUser(String userName, String roleName) {
@@ -131,34 +74,14 @@ public class UserRolesRepository {
         endTransaction(em);
     }
 
-    public Constraint createConstraint(Constraint constraint) {
+    public <T> T createEntity(T entity) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
         beginTransaction(em);
 
-        em.persist(constraint);
+        em.persist(entity);
 
         endTransaction(em);
-        return constraint;
-    }
-
-    public Constraint getConstraint(String roleName1, String roleName2) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        Constraint foundConstraint = em.find(Constraint.class, new PairKey(roleName1, roleName2));
-
-        endTransaction(em);
-        return foundConstraint;
-    }
-
-    public RoleHierarchy createHierarchy(RoleHierarchy roleHierarchy) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        em.persist(roleHierarchy);
-
-        endTransaction(em);
-        return roleHierarchy;
+        return entity;
     }
 
     public Set<String> getChildrenRoles(String roleName) {
@@ -172,5 +95,14 @@ public class UserRolesRepository {
 
         endTransaction(em);
         return result.stream().collect(Collectors.toSet());
+    }
+
+    private void endTransaction(EntityManager em) {
+        em.getTransaction().commit();
+        em.close();
+    }
+
+    private void beginTransaction(EntityManager em) {
+        em.getTransaction().begin();
     }
 }

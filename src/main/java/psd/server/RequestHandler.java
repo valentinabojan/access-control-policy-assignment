@@ -189,7 +189,7 @@ public class RequestHandler implements Runnable {
         if (!isOwnerOnTheRootDirectory(userCommand))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        if (repository.getPermission(userCommand.getPermission().getPermissionName()) == null) {
+        if (repository.getEntity(Permission.class, userCommand.getPermission().getPermissionName()) == null) {
             return new Response(ResponseType.NOT_EXISTING);
         }
 
@@ -206,7 +206,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createRole(userCommand.getRole());
+        repository.createEntity(userCommand.getRole());
 
         return new Response(ResponseType.OK);
     }
@@ -215,7 +215,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createUser(userCommand.getNewUser());
+        repository.createEntity(userCommand.getNewUser());
 
         return new Response(ResponseType.OK);
     }
@@ -224,7 +224,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createPermission(userCommand.getPermission());
+        repository.createEntity(userCommand.getPermission());
 
         return new Response(ResponseType.OK);
     }
@@ -233,7 +233,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createConstraint(new Constraint(userCommand.getRole1().getRoleName(), userCommand.getRole2().getRoleName()));
+        repository.createEntity(new Constraint(userCommand.getRole1().getRoleName(), userCommand.getRole2().getRoleName()));
 
         return new Response(ResponseType.OK);
     }
@@ -242,7 +242,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createHierarchy(new RoleHierarchy(userCommand.getRole1().getRoleName(), userCommand.getRole2().getRoleName()));
+        repository.createEntity(new RoleHierarchy(userCommand.getRole1().getRoleName(), userCommand.getRole2().getRoleName()));
 
         return new Response(ResponseType.OK);
     }
@@ -269,14 +269,14 @@ public class RequestHandler implements Runnable {
     }
 
     private boolean exitsConstraint(String userName, String roleName) {
-        User user = repository.getUser(userName);
+        User user = repository.getEntity(User.class, userName);
 
         return user.getRoles().stream()
                 .map(role -> getAncestorRoles(role.getRoleName()))
                 .flatMap(Collection::stream)
                 .anyMatch(role ->
-                        repository.getConstraint(roleName, roleName) != null
-                        || repository.getConstraint(roleName, roleName) != null);
+                        repository.getEntity(Constraint.class, new PairKey(role.getRoleName(), roleName)) != null
+                        || repository.getEntity(Constraint.class, new PairKey(roleName, role.getRoleName())) != null);
     }
 
     private Set<Role> getAncestorRoles(String role) {
@@ -303,8 +303,8 @@ public class RequestHandler implements Runnable {
     }
 
     private boolean userHasRole(String userName, String roleName) {
-        Role role = repository.getRole(roleName);
-        User user = repository.getUser(userName);
+        Role role = repository.getEntity(Role.class, roleName);
+        User user = repository.getEntity(User.class, userName);
 
         return user.getRoles().contains(role);
     }
@@ -315,7 +315,7 @@ public class RequestHandler implements Runnable {
 
     private boolean hasRights(String userName, File file, FilePermission filePermission) {
         String fileName = file.getName();
-        User user = repository.getUser(userName);
+        User user = repository.getEntity(User.class, userName);
         while (!fileName.isEmpty()) {
             Set<String> permissionNames = fileSystem.get(fileName);
             if (permissionNames != null) {
