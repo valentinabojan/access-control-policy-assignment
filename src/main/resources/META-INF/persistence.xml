@@ -8,6 +8,7 @@ http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
         <class>psd.api.Role</class>
         <class>psd.api.Permission</class>
         <class>psd.api.Constraint</class>
+        <class>psd.api.RoleHierarchy</class>
         <properties>
             <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost/psd" />
             <property name="javax.persistence.jdbc.user" value="root" />

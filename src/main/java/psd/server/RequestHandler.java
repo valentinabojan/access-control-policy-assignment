@@ -1,7 +1,6 @@
 package psd.server;
 
 import psd.api.*;
-import sun.nio.ch.FileKey;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -10,12 +9,12 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 import static psd.api.FilePermission.READ;
 import static psd.api.FilePermission.WRITE;
 import static psd.api.FileType.DIRECTORY;
@@ -242,7 +241,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createEntity(new RoleHierarchy(userCommand.getRole1().getRoleName(), userCommand.getRole2().getRoleName()));
+        repository.createEntity(new RoleHierarchy(userCommand.getRole2().getRoleName(), userCommand.getRole1().getRoleName()));
 
         return new Response(ResponseType.OK);
     }
@@ -272,21 +271,21 @@ public class RequestHandler implements Runnable {
         User user = repository.getEntity(User.class, userName);
 
         return user.getRoles().stream()
-                .map(role -> getAncestorRoles(role.getRoleName()))
+                .map(this::getAncestorRoles)
                 .flatMap(Collection::stream)
                 .anyMatch(role ->
-                        repository.getEntity(Constraint.class, new PairKey(role.getRoleName(), roleName)) != null
-                        || repository.getEntity(Constraint.class, new PairKey(roleName, role.getRoleName())) != null);
+                        repository.getEntity(Constraint.class, new ConstraintKey(role.getRoleName(), roleName)) != null
+                   || repository.getEntity(Constraint.class, new ConstraintKey(roleName, role.getRoleName())) != null);
     }
 
-    private Set<Role> getAncestorRoles(String role) {
-        Set<String> children = repository.getChildrenRoles(role);
+    private Set<Role> getAncestorRoles(Role role) {
+        Set<Role> children = repository.getChildrenRoles(role.getRoleName());
 
         if (children.isEmpty())
-            return emptySet();
+            return new HashSet<>();
 
         return children.stream()
-                .flatMap(r -> getAncestorRoles(r).stream())
+                .flatMap(r -> add(r, getAncestorRoles(r)).stream())
                 .collect(Collectors.toSet());
     }
 
@@ -320,7 +319,7 @@ public class RequestHandler implements Runnable {
             Set<String> permissionNames = fileSystem.get(fileName);
             if (permissionNames != null) {
                 boolean hasRights = user.getRoles().stream()
-                        .map(role -> getAncestorRoles(role.getRoleName()))
+                        .map(role -> add(role, getAncestorRoles(role)))
                         .flatMap(Collection::stream)
                         .map(Role::getPermissions)
                         .flatMap(Collection::stream)
@@ -335,6 +334,11 @@ public class RequestHandler implements Runnable {
         }
 
         return false;
+    }
+
+    private <T> Set<T> add(T item, Set<T> itemSet) {
+        itemSet.add(item);
+        return itemSet;
     }
 
     private boolean isOwnerOnTheRootDirectory(Command userCommand) {

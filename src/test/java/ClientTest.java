@@ -170,6 +170,9 @@ public class ClientTest {
         TypedQuery<Permission> permissionQuery = em.createQuery("SELECT p FROM Permission p", Permission.class);
         permissionQuery.getResultList().stream().forEach(em::remove);
 
+        TypedQuery<RoleHierarchy> hierarchyQuery = em.createQuery("SELECT rh FROM RoleHierarchy rh", RoleHierarchy.class);
+        hierarchyQuery.getResultList().stream().forEach(em::remove);
+
         em.getTransaction().commit();
         em.close();
     }

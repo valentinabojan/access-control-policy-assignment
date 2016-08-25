@@ -84,17 +84,17 @@ public class UserRolesRepository {
         return entity;
     }
 
-    public Set<String> getChildrenRoles(String roleName) {
+    public Set<Role> getChildrenRoles(String roleName) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
         beginTransaction(em);
 
-        Query query = em.createQuery("SELECT distinct c.child FROM RoleHierarchy rh WHERE rh.parent = :parent");
+        Query query = em.createQuery("SELECT distinct rh.child FROM RoleHierarchy rh WHERE rh.parent = :parent");
         query.setParameter("parent", roleName);
 
         List<String> result = query.getResultList();
 
         endTransaction(em);
-        return result.stream().collect(Collectors.toSet());
+        return result.stream().map(r -> getEntity(Role.class, r)).collect(Collectors.toSet());
     }
 
     private void endTransaction(EntityManager em) {

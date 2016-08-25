@@ -5,7 +5,7 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "hierarchy")
-@IdClass(PairKey.class)
+@IdClass(HierarchyKey.class)
 public class RoleHierarchy implements Serializable {
 
     @Id
