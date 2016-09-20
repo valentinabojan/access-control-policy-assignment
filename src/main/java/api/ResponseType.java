@@ -1,6 +1,8 @@
 package api;
 
 public enum ResponseType {
-
-    OK, ALREADY_EXISTING, NOT_AUTHORIZED, NOT_EXISTING
+    OK,
+    ALREADY_EXISTING,
+    NOT_AUTHORIZED,
+    NOT_EXISTING
 }
