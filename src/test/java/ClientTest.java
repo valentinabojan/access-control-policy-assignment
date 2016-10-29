@@ -39,7 +39,7 @@ public class ClientTest {
 
     @AfterClass
     public static void tearDown() throws IOException {
-        deleteNonEmptyDirectory(Paths.get("src/main/resources/workspace"));
+        deleteNonEmptyDirectory(Paths.get("src/main/resources"));
     }
 
     private static void deleteNonEmptyDirectory(Path path) {
@@ -102,7 +102,7 @@ public class ClientTest {
 
         // 11
         response = client.readResource("bob", "bob", "/alice/cursuri");
-        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "a.java - FILE"));
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "a.java"));
 
         // 12
         response = client.readResource("bob", "bob", "/alice/cursuri/a.java");

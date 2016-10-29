@@ -8,13 +8,14 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ServerRunner {
 
     public static final int NUMBER_OF_THREADS = 5;
-    public static Map<String, Set<FilePermission>> fileSystem = new HashMap<>();
+    public static Map<String, Set<FilePermission>> fileSystem = new ConcurrentHashMap<>();
 
     public static void main(String... args) throws IOException {
         System.out.println("Server started...");

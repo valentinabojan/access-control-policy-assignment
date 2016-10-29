@@ -1,6 +1,8 @@
 package api;
 
-public enum FileType {
+import java.io.Serializable;
+
+public enum FileType implements Serializable {
     DIRECTORY, FILE;
 
     public static FileType fromInteger(int numVal) {

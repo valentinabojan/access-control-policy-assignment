@@ -1,6 +1,8 @@
 package api;
 
-public enum FilePermission {
+import java.io.Serializable;
+
+public enum FilePermission implements Serializable {
     READ,
     WRITE
 }

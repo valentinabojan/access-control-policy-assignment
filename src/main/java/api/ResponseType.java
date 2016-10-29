@@ -1,6 +1,8 @@
 package api;
 
-public enum ResponseType {
+import java.io.Serializable;
+
+public enum ResponseType implements Serializable {
     OK,
     ALREADY_EXISTING,
     NOT_AUTHORIZED,

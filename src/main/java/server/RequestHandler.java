@@ -33,23 +33,23 @@ public class RequestHandler implements Runnable {
              ObjectOutputStream out = new ObjectOutputStream(client.getOutputStream())) {
             System.out.println("Worker started with name:" + Thread.currentThread().getName());
 
-            Command userCommand;
-            while ((userCommand = (Command) in.readObject()) != null) {
-                switch (userCommand.getType()) {
+            Command command;
+            while ((command = (Command) in.readObject()) != null) {
+                switch (command.getType()) {
                     case CREATE_RESOURCE:
-                        out.writeObject(createResource(userCommand));
+                        out.writeObject(createResource(command));
                         out.flush();
                         break;
                     case READ_RESOURCE:
-                        out.writeObject(readResource(userCommand));
+                        out.writeObject(readResource(command));
                         out.flush();
                         break;
                     case WRITE_RESOURCE:
-                        out.writeObject(writeResource(userCommand));
+                        out.writeObject(writeResource(command));
                         out.flush();
                         break;
                     case CHANGE_RIGHTS:
-                        out.writeObject(changeRights(userCommand));
+                        out.writeObject(changeRights(command));
                         out.flush();
                         break;
                 }
@@ -61,95 +61,72 @@ public class RequestHandler implements Runnable {
         }
     }
 
-    /**
-     * a. Daca numeResursa exista deja, serverul trebuie sa returneze eroare.
-     * b. Tip poate fi 0 (director) sau 1 (fisier). Daca este fisier, atunci valoarea va fi asignata acestei resurse.
-     * c. Numai utilizatorul care este owner in acel director (de exemplu Bob pt orice din /bob) are voie sa faca asta
-     */
-    private Response createResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+    private Response createResource(Command command) throws IOException {
+        Path path = Paths.get("src/main/resources" + command.getFile().getName());
 
         if (Files.exists(path))
             return new Response(ResponseType.ALREADY_EXISTING);
 
-        if (!isOwnerOnTheRootDirectory(userCommand))
+        if (!isOwnerOnTheRootDirectory(command))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        if (DIRECTORY.equals(userCommand.getFile().getType()))
+        if (DIRECTORY.equals(command.getFile().getType()))
             Files.createDirectories(path);
 
-        if (FILE.equals(userCommand.getFile().getType())) {
+        if (FILE.equals(command.getFile().getType())) {
+            if (!Files.exists(path.getParent())) {
+                Files.createDirectories(path.getParent());
+            }
             Files.createFile(path);
-            Files.write(path, userCommand.getFile().getValue().getBytes());
+            Files.write(path, command.getFile().getValue().getBytes());
         }
 
         return new Response(ResponseType.OK);
     }
 
-    /**
-     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-     * c. Daca este director, trebuie sa returneze ce se gaseste in acel director.
-     */
-    private Response readResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+    private Response readResource(Command command) throws IOException {
+        Path path = Paths.get("src/main/resources" + command.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
 
-        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getFile(), READ))
+        if (!isOwnerOnTheRootDirectory(command) && !hasRights(command.getFile(), READ))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
         if (!Files.isDirectory(path)) {
             return new Response(ResponseType.OK, Files.readAllLines(path).stream().collect(Collectors.joining()));
         } else {
-//            return new api.Response(api.ResponseType.OK, FileUtils.listFilesAndDirs(path.toFile(), FileFileFilter.FILE, DirectoryFileFilter.DIRECTORY).stream()
-//                    .map(o -> o.getName()).collect(Collectors.joining(", ")));
             try (Stream<Path> entries = Files.list(path)) {
-                return new Response(ResponseType.OK, entries
-                        .map(Path::getFileName)
-                        .map(o -> {
-                            if (!Files.isDirectory(o))
-                                return o.toString() + " - FILE";
-                            return o.toString() + " - DIRECTORY";
-                        }).collect(Collectors.joining()));
+                return new Response(ResponseType.OK, entries.map(Path::getFileName).map(Path::toString).collect(Collectors.joining("\n")));
             }
         }
     }
 
-    /**
-     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-     */
-    private Response writeResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+    private Response writeResource(Command command) throws IOException {
+        Path path = Paths.get("src/main/resources" + command.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
 
-        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getFile(), WRITE))
+        if (!isOwnerOnTheRootDirectory(command) && !hasRights(command.getFile(), WRITE))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
         if (!Files.isDirectory(path))
-            Files.write(path, userCommand.getFile().getValue().getBytes());
+            Files.write(path, command.getFile().getValue().getBytes());
 
         return new Response(ResponseType.OK);
     }
 
-    /**
-     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-     */
-    private Response changeRights(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+    private Response changeRights(Command command) throws IOException {
+        Path path = Paths.get("src/main/resources" + command.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
 
-        if (!isOwnerOnTheRootDirectory(userCommand))
+        if (!isOwnerOnTheRootDirectory(command))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        ServerRunner.fileSystem.put(userCommand.getFile().getName(), userCommand.getFile().getPermission());
+        ServerRunner.fileSystem.put(command.getFile().getName(), command.getFile().getPermission());
 
         return new Response(ResponseType.OK);
     }
@@ -168,7 +145,10 @@ public class RequestHandler implements Runnable {
         return false;
     }
 
-    private boolean isOwnerOnTheRootDirectory(Command userCommand) {
-        return userCommand.getFile().getName().toLowerCase().matches("^/" + userCommand.getUser().getName().toLowerCase() + "/.*$");
+    private boolean isOwnerOnTheRootDirectory(Command command) {
+        String path = command.getFile().getName().toLowerCase();
+        String rootPathRegex = "^/" + command.getUser().getName().toLowerCase() + "/.*$";
+
+        return path.matches(rootPathRegex);
     }
 }
