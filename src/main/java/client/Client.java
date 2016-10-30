@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static api.Command.CommandBuilder.command;
@@ -23,12 +24,12 @@ public class Client {
         in = new ObjectInputStream(socket.getInputStream());
     }
 
-    public Response createResource(String userName, String userPassword, String resourceName, int resourceType, String resourceValue) {
+    public Response createResource(String userName, String userPassword, String resourceName, int resourceType, Optional<String> resourceValue) {
         return sendCommand(
                 command()
                         .withType(CommandType.CREATE_RESOURCE)
                         .withUser(new User(userName, userPassword))
-                        .withFile(new File(resourceName, resourceValue, FileType.fromInteger(resourceType)))
+                        .withFile(new File(resourceName, resourceValue.orElse(null), FileType.fromInteger(resourceType)))
                         .build()
         );
     }

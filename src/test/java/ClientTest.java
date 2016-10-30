@@ -11,7 +11,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.stream.Stream;
+
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 public class ClientTest {
 
@@ -61,19 +65,19 @@ public class ClientTest {
         Response response;
 
         // 1
-        response = client.createResource("alice", "alice", "/bob/cursuri", 0, null);
+        response = client.createResource("alice", "alice", "/bob/cursuri", 0, empty());
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
 
         // 2
-        response = client.createResource("alice", "alice", "/alice/cursuri", 0, null);
+        response = client.createResource("alice", "alice", "/alice/cursuri", 0, empty());
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
         // 3
-        response = client.createResource("alice", "alice", "/alice/cursuri", 0, null);
+        response = client.createResource("alice", "alice", "/alice/cursuri", 0, empty());
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.ALREADY_EXISTING));
 
         // 4
-        response = client.createResource("alice", "alice", "/alice/cursuri", 1, null);
+        response = client.createResource("alice", "alice", "/alice/cursuri", 1, empty());
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.ALREADY_EXISTING));
 
         // 5
@@ -97,7 +101,7 @@ public class ClientTest {
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, ""));
 
         // 10
-        response = client.createResource("alice", "alice", "/alice/cursuri/a.java", 1, "Test");
+        response = client.createResource("alice", "alice", "/alice/cursuri/a.java", 1, of("Test"));
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
         // 11

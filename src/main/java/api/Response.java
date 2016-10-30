@@ -28,4 +28,13 @@ public class Response implements Serializable {
 
         return true;
     }
+
+    @Override
+    public String toString() {
+        if (value != null) {
+            return type + ", \"" + value + "\"";
+        }
+
+        return type.toString();
+    }
 }

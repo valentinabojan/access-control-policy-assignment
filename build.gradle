@@ -12,3 +12,19 @@ dependencies {
     testCompile 'org.assertj:assertj-core:3.4.1'
     compile group: 'commons-io', name: 'commons-io', version: '2.4'
 }
+
+apply plugin: 'application'
+
+task startServer(type: JavaExec) {
+    classpath sourceSets.main.runtimeClasspath
+    main = "server.ServerRunner"
+    args "1234"
+}
+
+task startClient(type: JavaExec) {
+    classpath sourceSets.main.runtimeClasspath
+    main = "client.ClientRunner"
+    args "localhost", "1234"
+    standardInput = System.in
+    standardOutput = System.out
+}
