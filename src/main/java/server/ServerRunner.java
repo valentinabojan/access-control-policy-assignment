@@ -17,8 +17,6 @@ public class ServerRunner {
     public static Map<String, Set<FilePermission>> fileSystem = new ConcurrentHashMap<>();
 
     public static void main(String... args) throws IOException {
-        System.out.println("Server started...");
-
         if (args.length != 1) {
             System.err.println("Usage: java ServerRunner <port number>");
             System.exit(1);
@@ -26,6 +24,7 @@ public class ServerRunner {
 
         int portNumber = Integer.parseInt(args[0]);
         ExecutorService executor = null;
+        System.out.println("Server started on port " + portNumber + "...");
 
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
             executor = Executors.newFixedThreadPool(NUMBER_OF_THREADS);

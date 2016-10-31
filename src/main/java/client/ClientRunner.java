@@ -13,6 +13,8 @@ import static java.util.Optional.ofNullable;
 
 public class ClientRunner {
 
+    private static final String EXIT = "exit";
+
     public static void main(String... args) {
         if (args.length != 2) {
             System.err.println("Usage: java ClientRunner <host name> <port number>");
@@ -41,6 +43,10 @@ public class ClientRunner {
         while ((commandString = scanner.nextLine()) != null) {
             if (commandString.isEmpty()) {
                 continue;
+            }
+
+            if (commandString.equals(EXIT)) {
+                System.exit(0);
             }
 
             Pattern pattern = Pattern.compile("(.+?)\\((.+?),\\s?(.+?),\\s?(.+?)(?:,\\s?(.+?))?(?:,\\s?(.+?))?\\)");

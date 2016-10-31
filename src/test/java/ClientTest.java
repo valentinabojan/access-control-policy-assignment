@@ -2,8 +2,8 @@ import api.Response;
 import api.ResponseType;
 import client.Client;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import server.ServerRunner;
 
@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.Optional.empty;
@@ -22,11 +21,11 @@ public class ClientTest {
     private static Client client;
     private static Thread serverThread;
 
-    @BeforeClass
-    public static void setup() {
+    @Before
+    public void setup() {
         serverThread = new Thread(() -> {
             try {
-                ServerRunner.main("8005");
+                ServerRunner.main("1234");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -34,23 +33,24 @@ public class ClientTest {
         serverThread.start();
 
         try {
+            Thread.sleep(1000);
             client = new Client();
-            client.connect("127.0.0.1", 8005);
-        } catch (IOException e) {
+            client.connect("127.0.0.1", 1234);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    @AfterClass
-    public static void tearDown() throws IOException {
+    @After
+    public void tearDown() throws IOException {
         deleteNonEmptyDirectory(Paths.get("src/main/resources"));
     }
 
-    private static void deleteNonEmptyDirectory(Path path) {
+    private void deleteNonEmptyDirectory(Path path) {
         try {
             if (Files.isDirectory(path)) {
                 try (Stream<Path> entries = Files.list(path)) {
-                    entries.forEach(ClientTest::deleteNonEmptyDirectory);
+                    entries.forEach(this::deleteNonEmptyDirectory);
                 }
             }
 

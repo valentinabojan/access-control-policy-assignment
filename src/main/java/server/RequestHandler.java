@@ -70,10 +70,10 @@ public class RequestHandler implements Runnable {
     private boolean loginSucceeds(Command command) {
         String password = command.getUser().getPassword();
         String username = command.getUser().getName();
-        return password.equalsIgnoreCase(username);
+        return password.equals(username);
     }
 
-    private Response createResource(Command command) throws IOException {
+    private synchronized Response createResource(Command command) throws IOException {
         Path path = Paths.get("src/main/resources" + command.getFile().getName());
 
         if (Files.exists(path))
@@ -96,7 +96,7 @@ public class RequestHandler implements Runnable {
         return new Response(ResponseType.OK);
     }
 
-    private Response readResource(Command command) throws IOException {
+    private synchronized Response readResource(Command command) throws IOException {
         Path path = Paths.get("src/main/resources" + command.getFile().getName());
 
         if (!Files.exists(path))
@@ -114,7 +114,7 @@ public class RequestHandler implements Runnable {
         }
     }
 
-    private Response writeResource(Command command) throws IOException {
+    private synchronized Response writeResource(Command command) throws IOException {
         Path path = Paths.get("src/main/resources" + command.getFile().getName());
 
         if (!Files.exists(path))
@@ -129,7 +129,7 @@ public class RequestHandler implements Runnable {
         return new Response(ResponseType.OK);
     }
 
-    private Response changeRights(Command command) throws IOException {
+    private synchronized Response changeRights(Command command) throws IOException {
         Path path = Paths.get("src/main/resources" + command.getFile().getName());
 
         if (!Files.exists(path))
