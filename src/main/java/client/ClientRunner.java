@@ -31,10 +31,8 @@ public class ClientRunner {
             processCommands(client, scanner);
         } catch (UnknownHostException e) {
             System.err.println("Client doesn't know about host " + hostName);
-            System.exit(1);
         } catch (IOException e) {
             System.err.println("Client couldn't get I/O for the connection to " + hostName);
-            System.exit(1);
         }
     }
 
@@ -46,7 +44,7 @@ public class ClientRunner {
             }
 
             if (commandString.equals(EXIT)) {
-                System.exit(0);
+                return;
             }
 
             Pattern pattern = Pattern.compile("(.+?)\\((.+?),\\s?(.+?),\\s?(.+?)(?:,\\s?(.+?))?(?:,\\s?(.+?))?\\)");
