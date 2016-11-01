@@ -21,6 +21,7 @@ import static api.ResponseType.LOGIN_FAILED;
 
 public class RequestHandler implements Runnable {
 
+    public static final String ROOT_PATH = "src/main/resources";
     private Socket client;
 
     public RequestHandler(Socket client) {
@@ -74,7 +75,7 @@ public class RequestHandler implements Runnable {
     }
 
     private synchronized Response createResource(Command command) throws IOException {
-        Path path = Paths.get("src/main/resources" + command.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + command.getFile().getName());
 
         if (Files.exists(path))
             return new Response(ResponseType.ALREADY_EXISTING);
@@ -97,7 +98,7 @@ public class RequestHandler implements Runnable {
     }
 
     private synchronized Response readResource(Command command) throws IOException {
-        Path path = Paths.get("src/main/resources" + command.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + command.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
@@ -115,7 +116,7 @@ public class RequestHandler implements Runnable {
     }
 
     private synchronized Response writeResource(Command command) throws IOException {
-        Path path = Paths.get("src/main/resources" + command.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + command.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
@@ -130,7 +131,7 @@ public class RequestHandler implements Runnable {
     }
 
     private synchronized Response changeRights(Command command) throws IOException {
-        Path path = Paths.get("src/main/resources" + command.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + command.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);

@@ -18,13 +18,21 @@ apply plugin: 'application'
 task startServer(type: JavaExec) {
     classpath sourceSets.main.runtimeClasspath
     main = "server.ServerRunner"
-    args "1234"
+    if (project.hasProperty("port")){
+        args(port)
+    } else {
+        args "1234"
+    }
 }
 
 task startClient(type: JavaExec) {
     classpath sourceSets.main.runtimeClasspath
     main = "client.ClientRunner"
-    args "localhost", "1234"
     standardInput = System.in
     standardOutput = System.out
+    if (project.hasProperty("port") && project.hasProperty("host")){
+        args(host, port)
+    } else {
+        args "localhost", "1234"
+    }
 }

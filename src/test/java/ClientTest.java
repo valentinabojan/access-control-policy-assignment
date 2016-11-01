@@ -25,7 +25,7 @@ public class ClientTest {
     public void setup() {
         serverThread = new Thread(() -> {
             try {
-                ServerRunner.main("1234");
+                ServerRunner.main("1235");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -35,7 +35,7 @@ public class ClientTest {
         try {
             Thread.sleep(1000);
             client = new Client();
-            client.connect("127.0.0.1", 1234);
+            client.connect("127.0.0.1", 1235);
         } catch (Exception e) {
             e.printStackTrace();
         }
