@@ -44,6 +44,7 @@ public class ClientTest {
     @After
     public void tearDown() throws IOException {
         deleteNonEmptyDirectory(Paths.get("src/main/resources"));
+        serverThread.interrupt();
     }
 
     private void deleteNonEmptyDirectory(Path path) {
