@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Set;
 
 public class File implements Serializable {
+
     private String name;
     private String value;
     private Set<FilePermission> permissions;
@@ -28,20 +29,12 @@ public class File implements Serializable {
         this(name, value, null, null);
     }
 
-    public File(String name, Set<FilePermission> permissions) {
-        this(name, null, permissions, null);
-    }
-
     public String getName() {
         return name;
     }
 
     public String getValue() {
         return value;
-    }
-
-    public Set<FilePermission> getPermission() {
-        return permissions;
     }
 
     public FileType getType() {

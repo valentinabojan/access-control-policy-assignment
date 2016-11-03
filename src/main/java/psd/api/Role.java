@@ -1,8 +1,5 @@
 package psd.api;
 
-import org.hibernate.annotations.*;
-import org.hibernate.annotations.CascadeType;
-
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -31,12 +28,12 @@ public class Role implements Serializable {
     }
 
     public Role(String roleName, String rights) {
-        this();
-        this.roleName = roleName;
+        this(roleName);
         this.rights = rights;
     }
 
     public Role(String roleName) {
+        this();
         this.roleName = roleName;
     }
 
@@ -48,12 +45,12 @@ public class Role implements Serializable {
         return rights;
     }
 
-    public List<User> getUsers() {
-        return users;
+    public void setRights(String rights) {
+        this.rights = rights;
     }
 
-    public void addUser(User user) {
-        users.add(user);
+    public List<User> getUsers() {
+        return users;
     }
 
     @Override
@@ -75,9 +72,5 @@ public class Role implements Serializable {
         result = 31 * result + (rights != null ? rights.hashCode() : 0);
         result = 31 * result + (users != null ? users.hashCode() : 0);
         return result;
-    }
-
-    public void setRights(String rights) {
-        this.rights = rights;
     }
 }

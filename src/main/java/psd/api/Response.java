@@ -3,31 +3,16 @@ package psd.api;
 import java.io.Serializable;
 
 public class Response implements Serializable {
+
     private ResponseType type;
-    private Object value;
+    private String value;
 
     public Response(ResponseType type) {
         this.type = type;
     }
 
-    public Response(ResponseType type, Object value) {
+    public Response(ResponseType type, String value) {
         this.type = type;
-        this.value = value;
-    }
-
-    public ResponseType getType() {
-        return type;
-    }
-
-    public void setType(ResponseType type) {
-        this.type = type;
-    }
-
-    public Object getValue() {
-        return value;
-    }
-
-    public void setValue(Object value) {
         this.value = value;
     }
 
@@ -42,5 +27,14 @@ public class Response implements Serializable {
         if (value != null ? !value.equals(response.value) : response.value != null) return false;
 
         return true;
+    }
+
+    @Override
+    public String toString() {
+        if (value != null) {
+            return type + ", \"" + value + "\"";
+        }
+
+        return type.toString();
     }
 }

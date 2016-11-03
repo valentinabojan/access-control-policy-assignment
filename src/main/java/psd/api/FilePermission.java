@@ -1,6 +1,9 @@
 package psd.api;
 
-public enum FilePermission {
+import java.io.Serializable;
+
+public enum FilePermission implements Serializable {
+
     READ("r"),
     WRITE("w"),
     READ_WRITE("rw");

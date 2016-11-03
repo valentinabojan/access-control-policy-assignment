@@ -1,6 +1,11 @@
 package psd.api;
 
-public enum ResponseType {
+import java.io.Serializable;
 
-    OK, ALREADY_EXISTING, NOT_AUTHORIZED, NOT_EXISTING
+public enum ResponseType implements Serializable {
+    OK,
+    ALREADY_EXISTING,
+    NOT_AUTHORIZED,
+    NOT_EXISTING,
+    LOGIN_FAILED
 }
