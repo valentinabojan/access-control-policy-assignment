@@ -2,13 +2,13 @@ import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import psd.api.Response;
-import psd.api.ResponseType;
-import psd.api.Role;
-import psd.api.User;
-import psd.client.Client;
-import psd.server.PersistenceManager;
-import psd.server.ServerRunner;
+import api.Response;
+import api.ResponseType;
+import api.Role;
+import api.User;
+import client.Client;
+import server.PersistenceManager;
+import server.ServerRunner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -16,7 +16,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.stream.Stream;
+
+import static java.util.Optional.of;
 
 public class ClientTest {
 
@@ -48,20 +51,6 @@ public class ClientTest {
         deleteNonEmptyDirectory(Paths.get("src/main/resources/workspace"));
         clearDatabase();
         serverThread.interrupt();
-    }
-
-    private void deleteNonEmptyDirectory(Path path) {
-        try {
-            if (Files.isDirectory(path)) {
-                try (Stream<Path> entries = Files.list(path)) {
-                    entries.forEach(this::deleteNonEmptyDirectory);
-                }
-            }
-
-            Files.delete(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Test
@@ -97,7 +86,7 @@ public class ClientTest {
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
         // 5
-        response = client.createResource("alice", "alice", "/alice/cursuri.java", 1, "cursuri");
+        response = client.createResource("alice", "alice", "/alice/cursuri.java", 1, of("cursuri"));
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
         // 6
@@ -161,6 +150,20 @@ public class ClientTest {
 
         response = client.readResource("bob", "bob", "/alice/cursuri.java");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK, "cursuri4"));
+    }
+
+    private void deleteNonEmptyDirectory(Path path) {
+        try {
+            if (Files.isDirectory(path)) {
+                try (Stream<Path> entries = Files.list(path)) {
+                    entries.forEach(this::deleteNonEmptyDirectory);
+                }
+            }
+
+            Files.delete(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void clearDatabase() {

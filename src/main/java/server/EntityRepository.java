@@ -1,30 +1,18 @@
-package psd.server;
+package server;
 
-import psd.api.Role;
-import psd.api.User;
+import api.Role;
+import api.User;
 
 import javax.persistence.EntityManager;
 
-public class UserRolesRepository {
+public class EntityRepository {
 
-    public User createUser(User user) {
+    public<E> void createEntity(E entity) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+
         beginTransaction(em);
-
-        em.persist(user);
-
+        em.persist(entity);
         endTransaction(em);
-        return user;
-    }
-
-    public Role createRole(Role role) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        em.persist(role);
-
-        endTransaction(em);
-        return role;
     }
 
     public User addRoleToUser(String username, String roleName) {
@@ -57,15 +45,6 @@ public class UserRolesRepository {
         return foundRole;
     }
 
-    private void endTransaction(EntityManager em) {
-        em.getTransaction().commit();
-        em.close();
-    }
-
-    private void beginTransaction(EntityManager em) {
-        em.getTransaction().begin();
-    }
-
     public Role updateRole(Role role) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
         beginTransaction(em);
@@ -76,5 +55,14 @@ public class UserRolesRepository {
 
         endTransaction(em);
         return foundRole;
+    }
+
+    private void beginTransaction(EntityManager em) {
+        em.getTransaction().begin();
+    }
+
+    private void endTransaction(EntityManager em) {
+        em.getTransaction().commit();
+        em.close();
     }
 }
