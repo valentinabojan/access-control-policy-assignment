@@ -1,8 +1,6 @@
 package psd.api;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,32 +11,18 @@ public class Role implements Serializable {
 
     @Id
     @Column(name = "role_name")
-    private String roleName;
+    private String name;
     private String rights;
 
-    @ManyToMany(fetch=FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name="user_role",
-            joinColumns=@JoinColumn(name="role_name", referencedColumnName="role_name"),
-            inverseJoinColumns=@JoinColumn(name="username", referencedColumnName="username"))
-    private List<User> users;
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "role_name", referencedColumnName = "role_name"),
+            inverseJoinColumns = @JoinColumn(name = "username", referencedColumnName = "username"))
+    private List<User> users = new ArrayList<>();
 
-    public Role() {
-        this.users = new ArrayList<>();
-    }
-
-    public Role(String roleName, String rights) {
-        this(roleName);
-        this.rights = rights;
-    }
-
-    public Role(String roleName) {
-        this();
-        this.roleName = roleName;
-    }
-
-    public String getRoleName() {
-        return roleName;
+    public String getName() {
+        return name;
     }
 
     public String getRights() {
@@ -61,16 +45,42 @@ public class Role implements Serializable {
         Role role = (Role) o;
 
         if (rights != null ? !rights.equals(role.rights) : role.rights != null) return false;
-        if (roleName != null ? !roleName.equals(role.roleName) : role.roleName != null) return false;
+        if (name != null ? !name.equals(role.name) : role.name != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = roleName != null ? roleName.hashCode() : 0;
+        int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (rights != null ? rights.hashCode() : 0);
         result = 31 * result + (users != null ? users.hashCode() : 0);
         return result;
+    }
+
+    public static class RoleBuilder {
+        private Role role;
+
+        private RoleBuilder() {
+            role = new Role();
+        }
+
+        public static RoleBuilder role() {
+            return new RoleBuilder();
+        }
+
+        public RoleBuilder withName(String name) {
+            role.name = name;
+            return this;
+        }
+
+        public RoleBuilder withRights(String rights) {
+            role.rights = rights;
+            return this;
+        }
+
+        public Role build() {
+            return role;
+        }
     }
 }

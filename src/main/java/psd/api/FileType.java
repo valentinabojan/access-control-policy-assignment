@@ -3,6 +3,7 @@ package psd.api;
 import java.io.Serializable;
 
 public enum FileType implements Serializable {
+
     DIRECTORY, FILE;
 
     public static FileType fromInteger(int numVal) {

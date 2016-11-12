@@ -18,6 +18,7 @@ import static psd.api.FilePermission.READ;
 import static psd.api.FilePermission.WRITE;
 import static psd.api.FileType.DIRECTORY;
 import static psd.api.FileType.FILE;
+import static psd.api.User.UserBuilder.user;
 
 public class RequestHandler implements Runnable {
 
@@ -170,14 +171,14 @@ public class RequestHandler implements Runnable {
         if (!isOwnerOnTheRootDirectory(userCommand))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        if (repository.getRole(userCommand.getRole().getRoleName()) == null) {
+        if (repository.getRole(userCommand.getRole().getName()) == null) {
             return new Response(ResponseType.NOT_EXISTING);
         }
 
         Set<String> existingRoles = ServerRunner.fileSystem.get(userCommand.getFile().getName());
         if (existingRoles == null)
             existingRoles = new HashSet<>();
-        existingRoles.add(userCommand.getRole().getRoleName());
+        existingRoles.add(userCommand.getRole().getName());
         ServerRunner.fileSystem.put(userCommand.getFile().getName(), existingRoles);
 
         return new Response(ResponseType.OK);
@@ -196,7 +197,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createUser(userCommand.getNewUser());
+        repository.createUser(userCommand.getTargetUser());
 
         return new Response(ResponseType.OK);
     }
@@ -214,13 +215,13 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.addRoleToUser(userCommand.getTargetUserName(), userCommand.getTargetRoleName());
+        repository.addRoleToUser(userCommand.getTargetUser().getUsername(), userCommand.getRole().getName());
 
         return new Response(ResponseType.OK);
     }
 
     private boolean isRoot(User user) {
-        return user.equals(new User("root", "root"));
+        return user.equals(user().withUsername("root").withPassword("root").build());
     }
 
     private boolean hasRights(User user, File file, FilePermission permission) {

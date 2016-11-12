@@ -1,6 +1,8 @@
 package psd.api;
 
-public enum CommandType {
+import java.io.Serializable;
+
+public enum CommandType implements Serializable {
     READ_RESOURCE,
     WRITE_RESOURCE,
     ADD_RIGHTS,

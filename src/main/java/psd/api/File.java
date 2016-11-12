@@ -1,33 +1,12 @@
 package psd.api;
 
 import java.io.Serializable;
-import java.util.Set;
 
 public class File implements Serializable {
 
     private String name;
     private String value;
-    private Set<FilePermission> permissions;
     private FileType type;
-
-    public File(String name, String value, Set<FilePermission> permissions, FileType type) {
-        this.name = name;
-        this.value = value;
-        this.permissions = permissions;
-        this.type = type;
-    }
-
-    public File(String name, String value, FileType type) {
-        this(name, value, null, type);
-    }
-
-    public File(String name) {
-        this(name, null, null, null);
-    }
-
-    public File(String name, String value) {
-        this(name, value, null, null);
-    }
 
     public String getName() {
         return name;
@@ -39,5 +18,36 @@ public class File implements Serializable {
 
     public FileType getType() {
         return type;
+    }
+
+    public static class FileBuilder {
+        private File file;
+
+        private FileBuilder() {
+            file = new File();
+        }
+
+        public static FileBuilder file() {
+            return new FileBuilder();
+        }
+
+        public FileBuilder withType(FileType type) {
+            file.type = type;
+            return this;
+        }
+
+        public FileBuilder withName(String name) {
+            file.name = name;
+            return this;
+        }
+
+        public FileBuilder withValue(String value) {
+            file.value = value;
+            return this;
+        }
+
+        public File build() {
+            return file;
+        }
     }
 }

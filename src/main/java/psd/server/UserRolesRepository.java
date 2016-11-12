@@ -38,7 +38,7 @@ public class UserRolesRepository {
             return null;
         }
 
-        if (!persistedUser.getRoles().stream().anyMatch(role -> role.getRoleName().equals(roleName))) {
+        if (!persistedUser.getRoles().stream().anyMatch(role -> role.getName().equals(roleName))) {
             persistedUser.addRole(persistedRole);
             em.merge(persistedUser);
         }
@@ -70,7 +70,7 @@ public class UserRolesRepository {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
         beginTransaction(em);
 
-        Role foundRole = em.find(Role.class, role.getRoleName());
+        Role foundRole = em.find(Role.class, role.getName());
         foundRole.setRights(role.getRights());
         em.merge(foundRole);
 
