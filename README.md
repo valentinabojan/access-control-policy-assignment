@@ -1,4 +1,4 @@
-# Access Controll Policy
+# Access Control Policy
 
 ## Configuration
 This assignment uses a MySQL database connection configured by several properties. Depending on your database configuration, those properties have to be changes in order that the program works correctly.
@@ -13,6 +13,7 @@ flyway {
     schemas = ['psd']
 }
 ```
+This can also be achevied through gradleproperties, at runtime: -Pflyway.user=myUsr -Pflyway.schemas=schema1,schema2
 
 __src/main/resources/META-INF/persistence.xml__
 ```xml
