@@ -221,8 +221,7 @@ public class RequestHandler implements Runnable {
                 boolean hasRights = roleNames.stream()
                         .map(repository::getRole)
                         .filter(role -> role.getUsers().contains(user))
-                        .filter(role -> role.getRights().contains(permission.getPermission()))
-                        .findAny().isPresent();
+                        .anyMatch(role -> role.getRights().contains(permission.getPermission()));
                 if (hasRights)
                     return true;
             }

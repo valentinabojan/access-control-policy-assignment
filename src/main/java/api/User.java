@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "user")
+@Table(name = "USER")
 public class User implements Serializable {
 
     @Id
@@ -16,9 +16,9 @@ public class User implements Serializable {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "user_role",
-            joinColumns = @JoinColumn(name = "username", referencedColumnName = "username"),
-            inverseJoinColumns = @JoinColumn(name = "role_name", referencedColumnName = "role_name"))
+            name = "USER_ROLE",
+            joinColumns = @JoinColumn(name = "USERNAME", referencedColumnName = "USERNAME"),
+            inverseJoinColumns = @JoinColumn(name = "ROLE_NAME", referencedColumnName = "ROLE_NAME"))
     private List<Role> roles = new ArrayList<>();
 
     public String getUsername() {

@@ -26,7 +26,7 @@ public class EntityRepository {
             return null;
         }
 
-        if (!persistedUser.getRoles().stream().anyMatch(role -> role.getName().equals(roleName))) {
+        if (persistedUser.getRoles().stream().noneMatch(role -> role.getName().equals(roleName))) {
             persistedUser.addRole(persistedRole);
             em.merge(persistedUser);
         }
