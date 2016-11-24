@@ -1,39 +1,17 @@
-package psd.server;
+package server;
 
-import psd.api.*;
+import api.entities.*;
 
 import javax.persistence.EntityManager;
 
-public class UserRolesRepository {
+public class EntityRepository {
 
-    public User createUser(User user) {
+    public<E> void createEntity(E entity) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+
         beginTransaction(em);
-
-        em.persist(user);
-
+        em.merge(entity);
         endTransaction(em);
-        return user;
-    }
-
-    public Role createRole(Role role) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        em.persist(role);
-
-        endTransaction(em);
-        return role;
-    }
-
-    public Permission createPermission(Permission permission) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        em.persist(permission);
-
-        endTransaction(em);
-        return permission;
     }
 
     public User addRoleToUser(String username, String roleName) {
@@ -47,7 +25,7 @@ public class UserRolesRepository {
             return null;
         }
 
-        if (!persistedUser.getRoles().stream().anyMatch(role -> role.getRoleName().equals(roleName))) {
+        if (persistedUser.getRoles().stream().noneMatch(role -> role.getName().equals(roleName))) {
             persistedUser.addRole(persistedRole);
             em.merge(persistedUser);
         }
@@ -67,7 +45,7 @@ public class UserRolesRepository {
             return null;
         }
 
-        if (!persistedRole.getPermissions().stream().anyMatch(permission -> permission.getPermissionName().equals(permissionName))) {
+        if (persistedRole.getPermissions().stream().noneMatch(permission -> permission.getPermissionName().equals(permissionName))) {
             persistedRole.addPermission(persistedPermission);
             em.merge(persistedRole);
         }
@@ -84,15 +62,6 @@ public class UserRolesRepository {
 
         endTransaction(em);
         return foundRole;
-    }
-
-    private void endTransaction(EntityManager em) {
-        em.getTransaction().commit();
-        em.close();
-    }
-
-    private void beginTransaction(EntityManager em) {
-        em.getTransaction().begin();
     }
 
     public Permission getPermission(String permissionName) {
@@ -115,6 +84,16 @@ public class UserRolesRepository {
         return foundUser;
     }
 
+    public Constraint getConstraint(String roleName1, String roleName2) {
+        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+        beginTransaction(em);
+
+        Constraint foundConstraint = em.find(Constraint.class, new ConstraintId(roleName1, roleName2));
+
+        endTransaction(em);
+        return foundConstraint;
+    }
+
     public void deleteRoleForUser(String userName, String roleName) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
         beginTransaction(em);
@@ -127,23 +106,12 @@ public class UserRolesRepository {
         endTransaction(em);
     }
 
-    public Constraint createConstraint(Constraint constraint) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        em.persist(constraint);
-
-        endTransaction(em);
-        return constraint;
+    private void endTransaction(EntityManager em) {
+        em.getTransaction().commit();
+        em.close();
     }
 
-    public Constraint getConstraint(String roleName1, String roleName2) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        Constraint foundConstraint = em.find(Constraint.class, new ConstraintId(roleName1, roleName2));
-
-        endTransaction(em);
-        return foundConstraint;
+    private void beginTransaction(EntityManager em) {
+        em.getTransaction().begin();
     }
 }

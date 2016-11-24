@@ -1,22 +1,22 @@
-package psd.server;
+package server;
+
+import api.entities.User;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ServerRunner {
 
     public static final int NUMBER_OF_THREADS = 5;
-    public static Map<String, Set<String>> fileSystem = new HashMap<>();
+    public static Map<String, Set<String>> fileSystem = new ConcurrentHashMap<>();
 
     public static void main(String... args) throws IOException {
-        System.out.println("Server started...");
-
         if (args.length != 1) {
             System.err.println("Usage: java ServerRunner <port number>");
             System.exit(1);
@@ -24,15 +24,18 @@ public class ServerRunner {
 
         int portNumber = Integer.parseInt(args[0]);
         ExecutorService executor = null;
+        System.out.println("Server started on port " + portNumber + "...");
+
 
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
             executor = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+            executor.execute(setUpServerEnvironment());
 
             System.out.println("Waiting for clients");
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                Runnable worker = new RequestHandler(new UserRolesRepository(), clientSocket);
+                Runnable worker = new RequestHandler(new EntityRepository(), clientSocket);
                 executor.execute(worker);
             }
         } catch (IOException e) {
@@ -43,5 +46,13 @@ public class ServerRunner {
                 executor.shutdown();
             }
         }
+    }
+
+    private static Runnable setUpServerEnvironment() {
+        return () -> {
+            EntityRepository entityRepository = new EntityRepository();
+            entityRepository.createEntity(User.UserBuilder.user().withUsername("alice").withPassword("alice").build());
+            entityRepository.createEntity(User.UserBuilder.user().withUsername("bob").withPassword("bob").build());
+        };
     }
 }

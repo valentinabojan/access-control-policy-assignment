@@ -1,6 +1,8 @@
-package psd.server;
+package server;
 
-import psd.api.*;
+import api.*;
+import api.entities.Role;
+import api.entities.User;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,17 +17,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static psd.api.FilePermission.READ;
-import static psd.api.FilePermission.WRITE;
-import static psd.api.FileType.DIRECTORY;
-import static psd.api.FileType.FILE;
+import static api.entities.Constraint.ConstraintBuilder.constraint;
+import static api.entities.User.UserBuilder.user;
 
 public class RequestHandler implements Runnable {
 
-    private UserRolesRepository repository;
+    private EntityRepository repository;
     private Socket client;
 
-    public RequestHandler(UserRolesRepository repository, Socket client) {
+    public RequestHandler(EntityRepository repository, Socket client) {
         this.repository = repository;
         this.client = client;
     }
@@ -106,10 +106,10 @@ public class RequestHandler implements Runnable {
         if (!isOwnerOnTheRootDirectory(userCommand))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        if (DIRECTORY.equals(userCommand.getFile().getType()))
+        if (FileType.DIRECTORY.equals(userCommand.getFile().getType()))
             Files.createDirectories(path);
 
-        if (FILE.equals(userCommand.getFile().getType())) {
+        if (FileType.FILE.equals(userCommand.getFile().getType())) {
             if (!Files.exists(path.getParent())) {
                 Files.createDirectories(path.getParent());
             }
@@ -131,7 +131,7 @@ public class RequestHandler implements Runnable {
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
 
-        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getUser().getUsername(), userCommand.getFile(), READ))
+        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getUser().getUsername(), userCommand.getFile(), FilePermission.READ))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
         if (!Files.isDirectory(path)) {
@@ -161,7 +161,7 @@ public class RequestHandler implements Runnable {
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
 
-        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getUser().getUsername(), userCommand.getFile(), WRITE))
+        if (!isOwnerOnTheRootDirectory(userCommand) && !hasRights(userCommand.getUser().getUsername(), userCommand.getFile(), FilePermission.WRITE))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
         if (!Files.isDirectory(path))
@@ -200,7 +200,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createRole(userCommand.getRole());
+        repository.createEntity(userCommand.getRole());
 
         return new Response(ResponseType.OK);
     }
@@ -209,7 +209,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createUser(userCommand.getNewUser());
+        repository.createEntity(userCommand.getTargetUser());
 
         return new Response(ResponseType.OK);
     }
@@ -218,7 +218,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createPermission(userCommand.getPermission());
+        repository.createEntity(userCommand.getPermission());
 
         return new Response(ResponseType.OK);
     }
@@ -227,7 +227,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createConstraint(new Constraint(userCommand.getRole1().getRoleName(), userCommand.getRole2().getRoleName()));
+        repository.createEntity(constraint().withRoleName1(userCommand.getRole().getName()).withRoleName2(userCommand.getTargetRole().getName()).build());
 
         return new Response(ResponseType.OK);
     }
@@ -236,7 +236,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.addPermissionToRole(userCommand.getPermission().getPermissionName(), userCommand.getRole().getRoleName());
+        repository.addPermissionToRole(userCommand.getPermission().getPermissionName(), userCommand.getRole().getName());
 
         return new Response(ResponseType.OK);
     }
@@ -245,10 +245,22 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        if (exitsConstraint(userCommand.getTargetUserName(), userCommand.getTargetRoleName()))
+        if (exitsConstraint(userCommand.getTargetUser().getUsername(), userCommand.getRole().getName()))
             return new Response(ResponseType.FORBIDDEN);
 
-        repository.addRoleToUser(userCommand.getTargetUserName(), userCommand.getTargetRoleName());
+        repository.addRoleToUser(userCommand.getTargetUser().getUsername(), userCommand.getRole().getName());
+
+        return new Response(ResponseType.OK);
+    }
+
+    private Response revokeRole(Command userCommand) {
+        if (!isRoot(userCommand.getUser()))
+            return new Response(ResponseType.NOT_AUTHORIZED);
+
+        if (!userHasRole(userCommand.getTargetUser().getUsername(), userCommand.getRole().getName()))
+            return new Response(ResponseType.INVALID);
+
+        repository.deleteRoleForUser(userCommand.getTargetUser().getUsername(), userCommand.getRole().getName());
 
         return new Response(ResponseType.OK);
     }
@@ -258,20 +270,8 @@ public class RequestHandler implements Runnable {
 
         return user.getRoles().stream()
                 .anyMatch(role ->
-                        repository.getConstraint(roleName, role.getRoleName()) != null
-                        || repository.getConstraint(role.getRoleName(), roleName) != null);
-    }
-
-    private Response revokeRole(Command userCommand) {
-        if (!isRoot(userCommand.getUser()))
-            return new Response(ResponseType.NOT_AUTHORIZED);
-
-        if (!userHasRole(userCommand.getTargetUserName(), userCommand.getTargetRoleName()))
-            return new Response(ResponseType.INVALID);
-
-        repository.deleteRoleForUser(userCommand.getTargetUserName(), userCommand.getTargetRoleName());
-
-        return new Response(ResponseType.OK);
+                        repository.getConstraint(roleName, role.getName()) != null
+                                || repository.getConstraint(role.getName(), roleName) != null);
     }
 
     private boolean userHasRole(String userName, String roleName) {
@@ -282,7 +282,7 @@ public class RequestHandler implements Runnable {
     }
 
     private boolean isRoot(User user) {
-        return user.equals(new User("root", "root"));
+        return user.equals(user().withUsername("root").withPassword("root").build());
     }
 
     private boolean hasRights(String userName, File file, FilePermission filePermission) {
@@ -295,8 +295,7 @@ public class RequestHandler implements Runnable {
                         .map(Role::getPermissions)
                         .flatMap(Collection::stream)
                         .filter(permission -> permissionNames.contains(permission.getPermissionName()))
-                        .filter(permission -> permission.getRights().contains(filePermission.getPermission()))
-                        .findAny().isPresent();
+                        .anyMatch(permission -> permission.getRights().contains(filePermission.getPermission()));
                 if (hasRights)
                     return true;
             }

@@ -1,4 +1,4 @@
-package psd.api;
+package api.entities;
 
 import java.io.Serializable;
 

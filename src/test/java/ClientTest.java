@@ -1,11 +1,15 @@
+import api.*;
+import api.entities.Constraint;
+import api.entities.Permission;
+import api.entities.Role;
+import api.entities.User;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import psd.api.*;
-import psd.client.Client;
-import psd.server.PersistenceManager;
-import psd.server.ServerRunner;
+import client.Client;
+import server.PersistenceManager;
+import server.ServerRunner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -13,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ClientTest {
@@ -32,9 +37,13 @@ public class ClientTest {
         serverThread.start();
 
         try {
+            Thread.sleep(3000);
             client = new Client();
             client.connect("127.0.0.1", 8005);
-        } catch (IOException e) {
+
+            client.createUser("root", "root", "bob", "bob");
+            client.createUser("root", "root", "alice", "alice");
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -61,10 +70,12 @@ public class ClientTest {
 
     @Test
     public void assignment3_testCase() {
-        clearDatabase();
         Response response;
 
         // 1
+        response = client.createRole("root", "root", "role1");
+        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
+
         response = client.createRole("root", "root", "role1");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
@@ -76,12 +87,6 @@ public class ClientTest {
         response = client.createPermission("root", "root", "perm1", "r");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
-        response = client.createUser("bob", "bob", "bob", "bob");
-        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
-
-        response = client.createUser("root", "root", "bob", "bob");
-        Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
-
         response = client.assignRole("bob", "bob", "bob", "role1");
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.NOT_AUTHORIZED));
 
@@ -90,7 +95,7 @@ public class ClientTest {
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
         // 5
-        response = client.createResource("alice", "alice", "/alice/cursuri.java", 1, "cursuri");
+        response = client.createResource("alice", "alice", "/alice/cursuri.java", 1, Optional.of("cursuri"));
         Assertions.assertThat(response).isEqualTo(new Response(ResponseType.OK));
 
         // 6

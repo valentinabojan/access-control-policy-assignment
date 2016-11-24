@@ -1,26 +1,20 @@
-package psd.api;
+package api.entities;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "user_constraint")
+@Table(name = "USER_CONSTRAINT")
 @IdClass(ConstraintId.class)
 public class Constraint implements Serializable {
 
-    @Id @Column(name = "rolename1")
+    @Id
+    @Column(name = "ROLENAME1")
     private String roleName1;
 
-    @Id @Column(name = "rolename2")
+    @Id
+    @Column(name = "ROLENAME2")
     private String roleName2;
-
-    public Constraint() {
-    }
-
-    public Constraint(String roleName1, String roleName2) {
-        this.roleName1 = roleName1;
-        this.roleName2 = roleName2;
-    }
 
     public String getRoleName1() {
         return roleName1;
@@ -48,5 +42,31 @@ public class Constraint implements Serializable {
         int result = roleName1 != null ? roleName1.hashCode() : 0;
         result = 31 * result + (roleName2 != null ? roleName2.hashCode() : 0);
         return result;
+    }
+
+    public static class ConstraintBuilder {
+        private Constraint constraint;
+
+        private ConstraintBuilder() {
+            constraint = new Constraint();
+        }
+
+        public static ConstraintBuilder constraint() {
+            return new ConstraintBuilder();
+        }
+
+        public ConstraintBuilder withRoleName1(String roleName1) {
+            constraint.roleName1 = roleName1;
+            return this;
+        }
+
+        public ConstraintBuilder withRoleName2(String roleName2) {
+            constraint.roleName2 = roleName2;
+            return this;
+        }
+
+        public Constraint build() {
+            return constraint;
+        }
     }
 }
