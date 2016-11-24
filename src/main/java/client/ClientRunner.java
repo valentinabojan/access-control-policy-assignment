@@ -43,6 +43,8 @@ public class ClientRunner {
                 continue;
             }
 
+            System.out.println(commandString);
+
             if (commandString.equals(EXIT)) {
                 return;
             }
