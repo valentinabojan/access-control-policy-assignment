@@ -22,6 +22,7 @@ import static api.entities.User.UserBuilder.user;
 
 public class RequestHandler implements Runnable {
 
+    private static final String ROOT_PATH = "src/main/resources/workspace";
     private EntityRepository repository;
     private Socket client;
 
@@ -92,13 +93,8 @@ public class RequestHandler implements Runnable {
         }
     }
 
-    /**
-     * a. Daca numeResursa exista deja, serverul trebuie sa returneze eroare.
-     * b. Tip poate fi 0 (director) sau 1 (fisier). Daca este fisier, atunci valoarea va fi asignata acestei resurse.
-     * c. Numai utilizatorul care este owner in acel director (de exemplu Bob pt orice din /bob) are voie sa faca asta
-     */
     private Response createResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + userCommand.getFile().getName());
 
         if (Files.exists(path))
             return new Response(ResponseType.ALREADY_EXISTING);
@@ -120,13 +116,8 @@ public class RequestHandler implements Runnable {
         return new Response(ResponseType.OK);
     }
 
-    /**
-     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-     * c. Daca este director, trebuie sa returneze ce se gaseste in acel director.
-     */
     private Response readResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + userCommand.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
@@ -137,26 +128,14 @@ public class RequestHandler implements Runnable {
         if (!Files.isDirectory(path)) {
             return new Response(ResponseType.OK, Files.readAllLines(path).stream().collect(Collectors.joining()));
         } else {
-//            return new api.Response(api.ResponseType.OK, FileUtils.listFilesAndDirs(path.toFile(), FileFileFilter.FILE, DirectoryFileFilter.DIRECTORY).stream()
-//                    .map(o -> o.getUsername()).collect(Collectors.joining(", ")));
             try (Stream<Path> entries = Files.list(path)) {
-                return new Response(ResponseType.OK, entries
-                        .map(Path::getFileName)
-                        .map(o -> {
-                            if (!Files.isDirectory(o))
-                                return o.toString() + " - FILE";
-                            return o.toString() + " - DIRECTORY";
-                        }).collect(Collectors.joining()));
+                return new Response(ResponseType.OK, entries.map(Path::getFileName).map(Path::toString).collect(Collectors.joining("\n")));
             }
         }
     }
 
-    /**
-     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-     */
     private Response writeResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + userCommand.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
@@ -170,12 +149,8 @@ public class RequestHandler implements Runnable {
         return new Response(ResponseType.OK);
     }
 
-    /**
-     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-     */
     private Response assignPermission(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + userCommand.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
