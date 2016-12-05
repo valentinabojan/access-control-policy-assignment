@@ -1,17 +1,12 @@
-package psd.api;
-
-import org.hibernate.annotations.*;
-import org.hibernate.annotations.CascadeType;
+package api.entities;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "user")
+@Table(name = "USER")
 public class User implements Serializable {
 
     @Id
@@ -19,22 +14,12 @@ public class User implements Serializable {
 
     private String password;
 
-    @ManyToMany(fetch=FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name="user_role",
-            joinColumns=@JoinColumn(name="username", referencedColumnName="username"),
-            inverseJoinColumns=@JoinColumn(name="role_name", referencedColumnName="role_name"))
-    private List<Role> roles;
-
-    public User() {
-        roles = new ArrayList<>();
-    }
-
-    public User(String username, String password) {
-        this();
-        this.username = username;
-        this.password = password;
-    }
+            name = "USER_ROLE",
+            joinColumns = @JoinColumn(name = "USERNAME", referencedColumnName = "USERNAME"),
+            inverseJoinColumns = @JoinColumn(name = "ROLE_NAME", referencedColumnName = "ROLE_NAME"))
+    private List<Role> roles = new ArrayList<>();
 
     public String getUsername() {
         return username;
@@ -59,7 +44,6 @@ public class User implements Serializable {
 
         User user = (User) o;
 
-        if (password != null ? !password.equals(user.password) : user.password != null) return false;
         if (username != null ? !username.equals(user.username) : user.username != null) return false;
 
         return true;
@@ -71,5 +55,31 @@ public class User implements Serializable {
         result = 31 * result + (password != null ? password.hashCode() : 0);
         result = 31 * result + (roles != null ? roles.hashCode() : 0);
         return result;
+    }
+
+    public static class UserBuilder {
+        private User user;
+
+        private UserBuilder() {
+            user = new User();
+        }
+
+        public static UserBuilder user() {
+            return new UserBuilder();
+        }
+
+        public UserBuilder withUsername(String username) {
+            user.username = username;
+            return this;
+        }
+
+        public UserBuilder withPassword(String password) {
+            user.password = password;
+            return this;
+        }
+
+        public User build() {
+            return user;
+        }
     }
 }

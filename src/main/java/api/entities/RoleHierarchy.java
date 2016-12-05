@@ -1,27 +1,20 @@
-package psd.api;
+package api.entities;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "hierarchy")
-@IdClass(HierarchyKey.class)
+@Table(name = "HIERARCHY")
+@IdClass(HierarchyId.class)
 public class RoleHierarchy implements Serializable {
 
     @Id
-    @Column(name = "parent")
+    @Column(name = "PARENT")
     private String parent;
 
-    @Id @Column(name = "child")
+    @Id
+    @Column(name = "CHILD")
     private String child;
-
-    public RoleHierarchy() {
-    }
-
-    public RoleHierarchy(String parent, String child) {
-        this.parent = parent;
-        this.child = child;
-    }
 
     public String getParent() {
         return parent;
@@ -49,5 +42,31 @@ public class RoleHierarchy implements Serializable {
         int result = parent != null ? parent.hashCode() : 0;
         result = 31 * result + (child != null ? child.hashCode() : 0);
         return result;
+    }
+
+    public static class RoleHierarchyBuilder {
+        private RoleHierarchy roleHierarchy;
+
+        private RoleHierarchyBuilder() {
+            roleHierarchy = new RoleHierarchy();
+        }
+
+        public RoleHierarchyBuilder withParent(String parent) {
+            roleHierarchy.parent = parent;
+            return this;
+        }
+
+        public RoleHierarchyBuilder withChild(String child) {
+            roleHierarchy.child = child;
+            return this;
+        }
+
+        public static RoleHierarchyBuilder roleHierarchy() {
+            return new RoleHierarchyBuilder();
+        }
+
+        public RoleHierarchy build() {
+            return roleHierarchy;
+        }
     }
 }

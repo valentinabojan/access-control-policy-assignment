@@ -1,16 +1,16 @@
-package psd.api;
+package api.entities;
 
 import java.io.Serializable;
 
-public class ConstraintKey implements Serializable{
+public class ConstraintId implements Serializable{
 
     private String roleName1;
     private String roleName2;
 
-    public ConstraintKey() {
+    public ConstraintId() {
     }
 
-    public ConstraintKey(String roleName1, String roleName2) {
+    public ConstraintId(String roleName1, String roleName2) {
         this.roleName1 = roleName1;
         this.roleName2 = roleName2;
     }
@@ -20,7 +20,7 @@ public class ConstraintKey implements Serializable{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ConstraintKey that = (ConstraintKey) o;
+        ConstraintId that = (ConstraintId) o;
 
         if (!roleName1.equals(that.roleName1)) return false;
         if (!roleName2.equals(that.roleName2)) return false;

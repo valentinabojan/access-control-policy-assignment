@@ -1,6 +1,7 @@
-package psd.server;
+package server;
 
-import psd.api.*;
+import api.*;
+import api.entities.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,18 +16,22 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static psd.api.FilePermission.READ;
-import static psd.api.FilePermission.WRITE;
-import static psd.api.FileType.DIRECTORY;
-import static psd.api.FileType.FILE;
-import static psd.server.ServerRunner.fileSystem;
+import static api.FilePermission.READ;
+import static api.FilePermission.WRITE;
+import static api.FileType.DIRECTORY;
+import static api.FileType.FILE;
+import static api.entities.Constraint.ConstraintBuilder.constraint;
+import static api.entities.RoleHierarchy.RoleHierarchyBuilder.roleHierarchy;
+import static api.entities.User.UserBuilder.user;
+import static server.ServerRunner.fileSystem;
 
 public class RequestHandler implements Runnable {
 
-    private UserRolesRepository repository;
+    private static final String ROOT_PATH = "src/main/resources/workspace";
+    private EntityRepository repository;
     private Socket client;
 
-    public RequestHandler(UserRolesRepository repository, Socket client) {
+    public RequestHandler(EntityRepository repository, Socket client) {
         this.repository = repository;
         this.client = client;
     }
@@ -97,13 +102,8 @@ public class RequestHandler implements Runnable {
         }
     }
 
-    /**
-     * a. Daca numeResursa exista deja, serverul trebuie sa returneze eroare.
-     * b. Tip poate fi 0 (director) sau 1 (fisier). Daca este fisier, atunci valoarea va fi asignata acestei resurse.
-     * c. Numai utilizatorul care este owner in acel director (de exemplu Bob pt orice din /bob) are voie sa faca asta
-     */
     private Response createResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + userCommand.getFile().getName());
 
         if (Files.exists(path))
             return new Response(ResponseType.ALREADY_EXISTING);
@@ -125,13 +125,8 @@ public class RequestHandler implements Runnable {
         return new Response(ResponseType.OK);
     }
 
-    /**
-     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-     * c. Daca este director, trebuie sa returneze ce se gaseste in acel director.
-     */
     private Response readResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + userCommand.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
@@ -142,26 +137,14 @@ public class RequestHandler implements Runnable {
         if (!Files.isDirectory(path)) {
             return new Response(ResponseType.OK, Files.readAllLines(path).stream().collect(Collectors.joining()));
         } else {
-//            return new api.Response(api.ResponseType.OK, FileUtils.listFilesAndDirs(path.toFile(), FileFileFilter.FILE, DirectoryFileFilter.DIRECTORY).stream()
-//                    .map(o -> o.getUsername()).collect(Collectors.joining(", ")));
             try (Stream<Path> entries = Files.list(path)) {
-                return new Response(ResponseType.OK, entries
-                        .map(Path::getFileName)
-                        .map(o -> {
-                            if (!Files.isDirectory(o))
-                                return o.toString() + " - FILE";
-                            return o.toString() + " - DIRECTORY";
-                        }).collect(Collectors.joining()));
+                return new Response(ResponseType.OK, entries.map(Path::getFileName).map(Path::toString).collect(Collectors.joining("\n")));
             }
         }
     }
 
-    /**
-     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-     */
     private Response writeResource(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + userCommand.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
@@ -175,12 +158,8 @@ public class RequestHandler implements Runnable {
         return new Response(ResponseType.OK);
     }
 
-    /**
-     * a. Daca nu exista resursa, trebuie sa returneze eroare.
-     * b. Politica de securitate trebuie analizata si sa se returneze eroare daca cererea nu este autorizata.
-     */
     private Response assignPermission(Command userCommand) throws IOException {
-        Path path = Paths.get("src/main/resources/workspace" + userCommand.getFile().getName());
+        Path path = Paths.get(ROOT_PATH + userCommand.getFile().getName());
 
         if (!Files.exists(path))
             return new Response(ResponseType.NOT_EXISTING);
@@ -214,7 +193,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createEntity(userCommand.getNewUser());
+        repository.createEntity(userCommand.getTargetUser());
 
         return new Response(ResponseType.OK);
     }
@@ -232,7 +211,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createEntity(new Constraint(userCommand.getRole1().getRoleName(), userCommand.getRole2().getRoleName()));
+        repository.createEntity(constraint().withRoleName1(userCommand.getRole().getName()).withRoleName2(userCommand.getTargetRole().getName()).build());
 
         return new Response(ResponseType.OK);
     }
@@ -241,7 +220,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.createEntity(new RoleHierarchy(userCommand.getRole2().getRoleName(), userCommand.getRole1().getRoleName()));
+        repository.createEntity(roleHierarchy().withParent(userCommand.getTargetRole().getName()).withChild(userCommand.getRole().getName()).build());
 
         return new Response(ResponseType.OK);
     }
@@ -250,7 +229,7 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        repository.addPermissionToRole(userCommand.getPermission().getPermissionName(), userCommand.getRole().getRoleName());
+        repository.addPermissionToRole(userCommand.getPermission().getPermissionName(), userCommand.getRole().getName());
 
         return new Response(ResponseType.OK);
     }
@@ -259,10 +238,22 @@ public class RequestHandler implements Runnable {
         if (!isRoot(userCommand.getUser()))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        if (exitsConstraint(userCommand.getTargetUserName(), userCommand.getTargetRoleName()))
+        if (exitsConstraint(userCommand.getTargetUser().getUsername(), userCommand.getRole().getName()))
             return new Response(ResponseType.FORBIDDEN);
 
-        repository.addRoleToUser(userCommand.getTargetUserName(), userCommand.getTargetRoleName());
+        repository.addRoleToUser(userCommand.getTargetUser().getUsername(), userCommand.getRole().getName());
+
+        return new Response(ResponseType.OK);
+    }
+
+    private Response revokeRole(Command userCommand) {
+        if (!isRoot(userCommand.getUser()))
+            return new Response(ResponseType.NOT_AUTHORIZED);
+
+        if (!userHasRole(userCommand.getTargetUser().getUsername(), userCommand.getRole().getName()))
+            return new Response(ResponseType.INVALID);
+
+        repository.deleteRoleForUser(userCommand.getTargetUser().getUsername(), userCommand.getRole().getName());
 
         return new Response(ResponseType.OK);
     }
@@ -274,12 +265,12 @@ public class RequestHandler implements Runnable {
                 .map(this::getAncestorRoles)
                 .flatMap(Collection::stream)
                 .anyMatch(role ->
-                        repository.getEntity(Constraint.class, new ConstraintKey(role.getRoleName(), roleName)) != null
-                   || repository.getEntity(Constraint.class, new ConstraintKey(roleName, role.getRoleName())) != null);
+                        repository.getEntity(Constraint.class, new ConstraintId(role.getName(), roleName)) != null
+                                || repository.getEntity(Constraint.class, new ConstraintId(roleName, role.getName())) != null);
     }
 
     private Set<Role> getAncestorRoles(Role role) {
-        Set<Role> children = repository.getChildrenRoles(role.getRoleName());
+        Set<Role> children = repository.getChildrenRoles(role.getName());
 
         if (children.isEmpty())
             return new HashSet<>();
@@ -287,18 +278,6 @@ public class RequestHandler implements Runnable {
         return children.stream()
                 .flatMap(r -> add(r, getAncestorRoles(r)).stream())
                 .collect(Collectors.toSet());
-    }
-
-    private Response revokeRole(Command userCommand) {
-        if (!isRoot(userCommand.getUser()))
-            return new Response(ResponseType.NOT_AUTHORIZED);
-
-        if (!userHasRole(userCommand.getTargetUserName(), userCommand.getTargetRoleName()))
-            return new Response(ResponseType.INVALID);
-
-        repository.deleteRoleForUser(userCommand.getTargetUserName(), userCommand.getTargetRoleName());
-
-        return new Response(ResponseType.OK);
     }
 
     private boolean userHasRole(String userName, String roleName) {
@@ -309,14 +288,14 @@ public class RequestHandler implements Runnable {
     }
 
     private boolean isRoot(User user) {
-        return user.equals(new User("root", "root"));
+        return user.equals(user().withUsername("root").withPassword("root").build());
     }
 
     private boolean hasRights(String userName, File file, FilePermission filePermission) {
         String fileName = file.getName();
         User user = repository.getEntity(User.class, userName);
         while (!fileName.isEmpty()) {
-            Set<String> permissionNames = fileSystem.get(fileName);
+            Set<String> permissionNames = ServerRunner.fileSystem.get(fileName);
             if (permissionNames != null) {
                 boolean hasRights = user.getRoles().stream()
                         .map(role -> add(role, getAncestorRoles(role)))
@@ -324,8 +303,7 @@ public class RequestHandler implements Runnable {
                         .map(Role::getPermissions)
                         .flatMap(Collection::stream)
                         .filter(permission -> permissionNames.contains(permission.getPermissionName()))
-                        .filter(permission -> permission.getRights().contains(filePermission.getPermission()))
-                        .findAny().isPresent();
+                        .anyMatch(permission -> permission.getRights().contains(filePermission.getPermission()));
                 if (hasRights)
                     return true;
             }

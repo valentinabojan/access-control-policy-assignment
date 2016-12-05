@@ -1,4 +1,4 @@
-package psd.server;
+package server;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;

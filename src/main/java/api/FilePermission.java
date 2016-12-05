@@ -1,4 +1,4 @@
-package psd.api;
+package api;
 
 public enum FilePermission {
     READ("r"),

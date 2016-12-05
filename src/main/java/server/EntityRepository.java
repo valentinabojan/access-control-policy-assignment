@@ -1,8 +1,8 @@
-package psd.server;
+package server;
 
-import psd.api.Permission;
-import psd.api.Role;
-import psd.api.User;
+import api.entities.Permission;
+import api.entities.Role;
+import api.entities.User;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class UserRolesRepository {
+public class EntityRepository {
 
     public User addRoleToUser(String username, String roleName) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
@@ -23,7 +23,7 @@ public class UserRolesRepository {
             return null;
         }
 
-        if (!persistedUser.getRoles().stream().anyMatch(role -> role.getRoleName().equals(roleName))) {
+        if (!persistedUser.getRoles().stream().anyMatch(role -> role.getName().equals(roleName))) {
             persistedUser.addRole(persistedRole);
             em.merge(persistedUser);
         }
@@ -74,14 +74,12 @@ public class UserRolesRepository {
         endTransaction(em);
     }
 
-    public <T> T createEntity(T entity) {
+    public <T> void createEntity(T entity) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
+
         beginTransaction(em);
-
-        em.persist(entity);
-
+        em.merge(entity);
         endTransaction(em);
-        return entity;
     }
 
     public Set<Role> getChildrenRoles(String roleName) {
