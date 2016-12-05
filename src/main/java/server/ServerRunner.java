@@ -29,8 +29,6 @@ public class ServerRunner {
 
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
             executor = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
-            executor.execute(setUpServerEnvironment());
-
             System.out.println("Waiting for clients");
 
             while (true) {
@@ -46,13 +44,5 @@ public class ServerRunner {
                 executor.shutdown();
             }
         }
-    }
-
-    private static Runnable setUpServerEnvironment() {
-        return () -> {
-            EntityRepository entityRepository = new EntityRepository();
-            entityRepository.createEntity(User.UserBuilder.user().withUsername("alice").withPassword("alice").build());
-            entityRepository.createEntity(User.UserBuilder.user().withUsername("bob").withPassword("bob").build());
-        };
     }
 }
