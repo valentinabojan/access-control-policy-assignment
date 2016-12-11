@@ -1,8 +1,7 @@
 package server;
 
 import api.*;
-import api.entities.Role;
-import api.entities.User;
+import api.entities.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -158,7 +157,7 @@ public class RequestHandler implements Runnable {
         if (!isOwnerOnTheRootDirectory(userCommand))
             return new Response(ResponseType.NOT_AUTHORIZED);
 
-        if (repository.getPermission(userCommand.getPermission().getPermissionName()) == null) {
+        if (repository.getEntity(userCommand.getPermission().getPermissionName(), Permission.class) == null) {
             return new Response(ResponseType.NOT_EXISTING);
         }
 
@@ -241,17 +240,17 @@ public class RequestHandler implements Runnable {
     }
 
     private boolean exitsConstraint(String userName, String roleName) {
-        User user = repository.getUser(userName);
+        User user = repository.getEntity(userName, User.class);
 
         return user.getRoles().stream()
                 .anyMatch(role ->
-                        repository.getConstraint(roleName, role.getName()) != null
-                                || repository.getConstraint(role.getName(), roleName) != null);
+                        repository.getEntity(new ConstraintId(roleName, role.getName()), Constraint.class) != null
+                                || repository.getEntity(new ConstraintId(role.getName(), roleName), Constraint.class) != null);
     }
 
     private boolean userHasRole(String userName, String roleName) {
-        Role role = repository.getRole(roleName);
-        User user = repository.getUser(userName);
+        Role role = repository.getEntity(roleName, Role.class);
+        User user = repository.getEntity(userName, User.class);
 
         return user.getRoles().contains(role);
     }
@@ -262,7 +261,7 @@ public class RequestHandler implements Runnable {
 
     private boolean hasRights(String userName, File file, FilePermission filePermission) {
         String fileName = file.getName();
-        User user = repository.getUser(userName);
+        User user = repository.getEntity(userName, User.class);
         while (!fileName.isEmpty()) {
             Set<String> permissionNames = ServerRunner.fileSystem.get(fileName);
             if (permissionNames != null) {

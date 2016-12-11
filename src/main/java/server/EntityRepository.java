@@ -54,44 +54,14 @@ public class EntityRepository {
         return persistedRole;
     }
 
-    public Role getRole(String roleName) {
+    public <EntityClass, KeyClass> EntityClass getEntity(KeyClass key, Class<EntityClass> entityClass) {
         EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
         beginTransaction(em);
 
-        Role foundRole = em.find(Role.class, roleName);
+        EntityClass entity = em.find(entityClass, key);
 
         endTransaction(em);
-        return foundRole;
-    }
-
-    public Permission getPermission(String permissionName) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        Permission foundPermission = em.find(Permission.class, permissionName);
-
-        endTransaction(em);
-        return foundPermission;
-    }
-
-    public User getUser(String userName) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        User foundUser = em.find(User.class, userName);
-
-        endTransaction(em);
-        return foundUser;
-    }
-
-    public Constraint getConstraint(String roleName1, String roleName2) {
-        EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-        beginTransaction(em);
-
-        Constraint foundConstraint = em.find(Constraint.class, new ConstraintId(roleName1, roleName2));
-
-        endTransaction(em);
-        return foundConstraint;
+        return entity;
     }
 
     public void deleteRoleForUser(String userName, String roleName) {
