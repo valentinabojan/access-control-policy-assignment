@@ -1,7 +1,7 @@
 # Access Control Policy
 
 ## Configuration
-This assignment uses a MySQL database connection configured by several properties. Depending on your database configuration, those properties have to be changes in order that the program works correctly.
+This assignment uses a MySQL database connection configured by several properties. Depending on your database configuration, those properties have to be changed in order for the program to work correctly.
 The follwoing two files have to be updated:
 
 __build.gradle__
