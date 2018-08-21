@@ -1,5 +1,8 @@
 # Access Control Policy
 
+## Description
+This project implements a simple RBAC policy for the file system access. See the test classes from different braches to follow the step-by-step implementation of the policy.
+
 ## Configuration
 This assignment uses a MySQL database connection configured by several properties. Depending on your database configuration, those properties have to be changed in order for the program to work correctly.
 The follwoing two files have to be updated:
